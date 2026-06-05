@@ -24,7 +24,7 @@ body{background:#000;min-height:100vh;overflow:hidden;font-family:'Orbitron',mon
 .dial-close{margin-top:20px;font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,0.3);padding:8px 20px;border-radius:3px;cursor:pointer;background:transparent;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
 #landing{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.city{position:fixed;bottom:0;left:0;right:0;height:100vh;z-index:1;pointer-events:none;}
+.city{position:fixed;bottom:0;left:0;right:0;height:55vh;z-index:1;pointer-events:none;}
 @keyframes riseBuilding{from{transform:translateY(100%);}to{transform:translateY(0);}}
 @keyframes moonGlow{from{opacity:0;transform:scale(0.5);}to{opacity:1;transform:scale(1);}}
 @keyframes orbisReveal{from{opacity:0;letter-spacing:.5em;}to{opacity:1;letter-spacing:.15em;}}
@@ -96,7 +96,7 @@ body{background:#000;min-height:100vh;overflow:hidden;font-family:'Orbitron',mon
 
 <!-- LANDING PAGE -->
 <div id="landing">
-  <svg class="city" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <svg class="city" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
     <circle cx="600" cy="160" r="110" fill="#1a2a5e" opacity="0.6" style="animation:moonGlow 2s ease forwards"/>
     <circle cx="600" cy="160" r="85" fill="#2a3a7e" opacity="0.4"/>
     <g fill="#1a2550" style="animation:riseBuilding 1.2s ease forwards">
