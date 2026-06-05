@@ -3,181 +3,611 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ORBIS — Smart City Dashboard</title>
+<title>ORBIS</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#020507;--panel:#070d12;--border:#0d2233;--glow:#00d4ff;--glow2:#00ff9d;--warm:#ff9f43;--text:#c8e8f5;--muted:#3a6680;--danger:#ff4757;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;padding:20px 16px 40px;max-width:960px;margin:auto;}
-body::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.012) 2px,rgba(0,212,255,.012) 4px);}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;border-bottom:1px solid var(--border);padding-bottom:14px;flex-wrap:wrap;gap:10px;}
-.brand{font-family:'Orbitron';font-weight:900;font-size:1.2rem;letter-spacing:.2em;color:var(--glow);}
-.brand small{color:var(--muted);font-size:.55em;display:block;letter-spacing:.3em;}
-#clk{font-family:'Orbitron';font-size:.9rem;color:var(--glow);}
-.sbar{display:flex;align-items:center;gap:10px;font-size:.65rem;color:var(--muted);margin-bottom:20px;flex-wrap:wrap;}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--glow2);animation:pd 2s infinite;}
-.dot.offline{background:var(--muted);animation:none;}
-@keyframes pd{0%,100%{opacity:1}50%{opacity:.25}}
-.alert-bar{display:none;background:var(--danger);color:#fff;font-family:'Orbitron';font-size:.75rem;letter-spacing:.15em;padding:10px;text-align:center;border-radius:3px;margin-bottom:16px;animation:blk 1s step-start infinite;}
-.alert-bar.show{display:block;}
-@keyframes blk{0%,100%{opacity:1}50%{opacity:0}}
-.offline-bar{display:none;background:#1a2a3a;color:var(--muted);font-family:'Orbitron';font-size:.7rem;letter-spacing:.15em;padding:10px;text-align:center;border-radius:3px;margin-bottom:16px;border:1px solid var(--border);}
-.offline-bar.show{display:block;}
-.sec-title{font-family:'Orbitron';font-size:.6rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;margin-bottom:20px;}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:14px 16px;position:relative;overflow:hidden;}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.2),transparent);}
-.c-label{font-size:.58rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;}
-.c-value{font-family:'Orbitron';font-weight:700;font-size:1.4rem;}
-.c-unit{font-size:.7rem;color:var(--muted);margin-left:3px;}
-.c-sub{font-size:.6rem;color:var(--muted);margin-top:5px;}
-.c-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;}
-.c-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
-.hero{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
-.hero-main{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--glow);border-radius:3px;padding:20px 24px;position:relative;overflow:hidden;}
-.scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--glow),transparent);animation:sc 3s linear infinite;}
-@keyframes sc{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-.temp-val{font-family:'Orbitron';font-weight:900;font-size:4rem;line-height:1;color:var(--warm);}
-.side-cards{display:flex;flex-direction:column;gap:12px;flex:1;min-width:160px;}
-.status-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
-.status-dot{width:8px;height:8px;border-radius:50%;}
-footer{text-align:center;font-size:.6rem;color:var(--muted);letter-spacing:.18em;padding-top:14px;border-top:1px solid var(--border);margin-top:20px;}
-.bl{animation:blk 1s step-start infinite;}
-.cy{color:var(--glow)}.cg{color:var(--glow2)}.ca{color:var(--warm)}.cr{color:var(--danger)}
-@media(max-width:480px){.temp-val{font-size:3rem;}.grid{grid-template-columns:1fr 1fr;}}
+body{background:#000;min-height:100vh;overflow:hidden;font-family:'Orbitron',monospace;}
+#canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.alert-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(255,0,0,0);pointer-events:none;}
+.alert-overlay.active{display:block;animation:redflash 0.5s step-start infinite;}
+@keyframes redflash{0%,100%{background:rgba(255,30,0,0.25);}50%{background:rgba(255,30,0,0);}}
+.alert-popup{display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:#ff1e00;color:#fff;font-family:'Orbitron',monospace;font-size:13px;letter-spacing:.2em;padding:14px;text-align:center;animation:blk 1s step-start infinite;}
+.alert-popup.active{display:block;}
+@keyframes blk{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.fire-dial{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column;}
+.fire-dial.active{display:flex;}
+.dial-screen{background:#111;border:2px solid #ff1e00;border-radius:12px;padding:30px 40px;text-align:center;max-width:280px;width:90%;}
+.dial-num{font-family:'Orbitron',monospace;font-size:2.5rem;font-weight:900;color:#ff1e00;letter-spacing:.2em;margin:10px 0;}
+.dial-label{font-family:'Space Mono',monospace;font-size:.7rem;color:#ff6b6b;letter-spacing:.2em;}
+.dial-status{font-family:'Space Mono',monospace;font-size:.65rem;color:#ff9f43;margin-top:12px;animation:blk 1.5s infinite;}
+.dial-close{margin-top:20px;font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,0.3);padding:8px 20px;border-radius:3px;cursor:pointer;background:transparent;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+#landing{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.city{position:fixed;bottom:0;left:0;right:0;height:100vh;z-index:1;pointer-events:none;}
+@keyframes riseBuilding{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes moonGlow{from{opacity:0;transform:scale(0.5);}to{opacity:1;transform:scale(1);}}
+@keyframes orbisReveal{from{opacity:0;letter-spacing:.5em;}to{opacity:1;letter-spacing:.15em;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.main-content{position:relative;z-index:5;text-align:center;pointer-events:none;margin-bottom:200px;}
+.top-line{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.4em;color:rgba(150,200,255,0.5);margin-bottom:16px;text-transform:uppercase;}
+.orbis-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(48px,14vw,80px);letter-spacing:.15em;color:#fff;line-height:1;}
+.tagline{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.3em;color:rgba(150,200,255,0.6);margin-top:8px;text-transform:uppercase;}
+.divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(100,180,255,0.5),transparent);margin:20px auto;}
+.stats{display:flex;gap:24px;justify-content:center;margin-bottom:28px;}
+.stat-num{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:rgba(100,200,255,0.9);}
+.stat-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:rgba(100,150,200,0.5);margin-top:2px;}
+.enter-wrap{position:relative;display:inline-block;pointer-events:all;cursor:pointer;}
+.pulse-ring{position:absolute;inset:-8px;border-radius:2px;border:1px solid rgba(100,180,255,0.3);animation:pr 2s ease-out infinite;pointer-events:none;}
+@keyframes pr{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(1.15);opacity:0;}}
+.enter-btn{font-family:'Orbitron',monospace;font-weight:700;font-size:12px;letter-spacing:.25em;color:#fff;border:1px solid rgba(100,180,255,0.5);padding:14px 40px;border-radius:2px;background:rgba(10,30,60,0.6);text-transform:uppercase;display:block;}
+.bottom-bar{position:fixed;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:20px;z-index:5;pointer-events:none;}
+.sys-ind{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;color:rgba(100,150,200,0.4);}
+.sdot{width:5px;height:5px;border-radius:50%;animation:blink 2s infinite;}
+#systems-page,#detail-page{display:none;position:fixed;inset:0;z-index:100;overflow-y:auto;}
+.page-bg{position:fixed;inset:0;background:#020507;z-index:-1;}
+.page-bg-city{position:fixed;bottom:0;left:0;right:0;height:35vh;z-index:-1;opacity:0.06;pointer-events:none;}
+.pg-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #0d2233;background:#020507;position:sticky;top:0;z-index:10;}
+.back-btn{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.2em;color:rgba(0,212,255,.7);cursor:pointer;border:1px solid rgba(0,212,255,.2);padding:6px 14px;border-radius:2px;}
+.pg-brand{font-family:'Orbitron',monospace;font-weight:900;font-size:.95rem;letter-spacing:.2em;color:#00d4ff;}
+.pg-time{margin-left:auto;font-family:'Space Mono',monospace;font-size:.6rem;color:#3a6680;}
+.pg-body{padding:20px;max-width:1000px;margin:auto;}
+.page-alert{display:none;background:#ff1e00;color:#fff;font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.15em;padding:10px 16px;text-align:center;animation:blk 1s step-start infinite;margin-bottom:16px;border-radius:3px;}
+.page-alert.show{display:block;}
+.sys-card{background:#070d12;border:1px solid #0d2233;border-radius:4px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color .2s,transform .1s;position:relative;overflow:hidden;}
+.sys-card:hover{border-color:#00d4ff;transform:translateY(-1px);}
+.sys-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.3),transparent);}
+.sc-header{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.sc-dot{width:8px;height:8px;border-radius:50%;}
+.sc-name{font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;color:#c8e8f5;letter-spacing:.1em;}
+.sc-status{font-family:'Orbitron',monospace;font-size:.65rem;margin-left:auto;}
+.sc-desc{font-family:'Space Mono',monospace;font-size:.62rem;color:#3a6680;margin-left:20px;}
+.sc-arrow{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:#3a6680;font-size:18px;}
+.sec-title{font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.25em;color:#3a6680;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #0d2233;}
+.d-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;}
+.d-card{background:#070d12;border:1px solid #0d2233;border-radius:3px;padding:12px 14px;}
+.d-label{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.2em;color:#3a6680;text-transform:uppercase;margin-bottom:6px;}
+.d-value{font-family:'Orbitron',monospace;font-weight:700;font-size:1.3rem;}
+.d-sub{font-size:.6rem;color:#3a6680;margin-top:4px;font-family:'Space Mono',monospace;}
+.d-bar-wrap{margin-top:8px;}
+.d-bar-track{height:4px;background:#0d2233;border-radius:2px;overflow:hidden;}
+.d-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+.cinematic-link{display:block;text-align:center;font-family:'Orbitron',monospace;font-size:.65rem;letter-spacing:.2em;color:#00d4ff;border:1px solid rgba(0,212,255,.2);padding:10px;border-radius:3px;margin-top:16px;text-decoration:none;cursor:pointer;}
+.info-block{background:#070d12;border:1px solid #0d2233;border-radius:3px;padding:14px;margin-bottom:12px;}
+.loading-txt{font-family:'Space Mono',monospace;font-size:.65rem;color:#3a6680;text-align:center;padding:40px;}
+@media(max-width:480px){.orbis-logo{font-size:48px;}.d-grid{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
-<header>
-  <div><div class="brand">ORBIS<small>SMART CITY DASHBOARD</small></div></div>
-  <div style="text-align:right">
-    <div id="clk">--:--:--</div>
-    <div style="font-size:.65rem;color:var(--muted);margin-top:3px">Chittagong, BD</div>
+
+<div class="alert-overlay" id="alertOverlay"></div>
+<div class="alert-popup" id="alertPopup">FIRE ALERT - DANGEROUS GAS DETECTED - EVACUATING</div>
+<div class="fire-dial" id="fireDial">
+  <div class="dial-screen">
+    <div class="dial-label">EMERGENCY SERVICES</div>
+    <div class="dial-num">999</div>
+    <div class="dial-label">FIRE BRIGADE</div>
+    <div class="dial-status" id="dialStatus">Dialing...</div>
+    <div class="dial-close" onclick="closeDial()">DISMISS</div>
   </div>
-</header>
-
-<div class="alert-bar" id="alertBar">⚠ ALERT — DANGEROUS CONDITIONS DETECTED</div>
-<div class="offline-bar" id="offlineBar">ESP32 OFFLINE — Showing last known data</div>
-
-<div class="sbar">
-  <div class="dot" id="liveDot"></div>
-  <span id="liveLabel">CONNECTING...</span>
-  <span style="margin-left:auto;font-size:.6rem">Last sync: <span id="lastSync">—</span></span>
 </div>
 
-<!-- WEATHER HERO -->
-<div class="sec-title">WEATHER STATION</div>
-<div class="hero">
-  <div class="hero-main">
-    <div class="scan-line"></div>
-    <div style="font-size:1.2rem;margin-bottom:5px" id="condition">—</div>
-    <div><span class="temp-val" id="temp">--</span><span style="font-size:1.4rem;color:var(--muted);vertical-align:super">°C</span></div>
-    <div style="font-size:.62rem;letter-spacing:.28em;color:var(--muted);margin-top:7px">AMBIENT TEMPERATURE</div>
-    <div style="display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid var(--glow);border-radius:2px;font-size:.7rem;color:var(--glow)" id="comfort">—</div>
-  </div>
-  <div class="side-cards">
-    <div class="card">
-      <div class="c-label">Humidity</div>
-      <div><span class="c-value cy" id="humidity">--</span><span class="c-unit">%</span></div>
-      <div class="c-bar"><div class="c-bar-fill" id="humBar" style="background:var(--glow);width:0%"></div></div>
-      <div class="c-sub" id="humSub">—</div>
+<canvas id="canvas"></canvas>
+
+<!-- LANDING PAGE -->
+<div id="landing">
+  <svg class="city" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="600" cy="160" r="110" fill="#1a2a5e" opacity="0.6" style="animation:moonGlow 2s ease forwards"/>
+    <circle cx="600" cy="160" r="85" fill="#2a3a7e" opacity="0.4"/>
+    <g fill="#1a2550" style="animation:riseBuilding 1.2s ease forwards">
+      <rect x="0" y="350" width="70" height="450"/><rect x="55" y="300" width="50" height="500"/>
+      <rect x="95" y="320" width="60" height="480"/><rect x="145" y="270" width="45" height="530"/>
+      <rect x="180" y="300" width="55" height="500"/><rect x="225" y="240" width="65" height="560"/>
+      <rect x="280" y="280" width="50" height="520"/><rect x="320" y="255" width="40" height="545"/>
+      <rect x="350" y="270" width="60" height="530"/><rect x="400" y="300" width="45" height="500"/>
+      <rect x="760" y="300" width="60" height="500"/><rect x="810" y="270" width="45" height="530"/>
+      <rect x="845" y="255" width="55" height="545"/><rect x="890" y="240" width="65" height="560"/>
+      <rect x="945" y="280" width="50" height="520"/><rect x="985" y="300" width="55" height="500"/>
+      <rect x="1030" y="270" width="45" height="530"/><rect x="1065" y="240" width="60" height="560"/>
+      <rect x="1115" y="260" width="50" height="540"/><rect x="1155" y="300" width="45" height="500"/>
+    </g>
+    <g fill="#111830" style="animation:riseBuilding 1s ease .3s both">
+      <rect x="0" y="390" width="90" height="410"/><rect x="80" y="355" width="70" height="445"/>
+      <rect x="140" y="330" width="80" height="470"/><rect x="210" y="310" width="60" height="490"/>
+      <rect x="260" y="285" width="95" height="515"/><rect x="345" y="330" width="75" height="470"/>
+      <rect x="410" y="310" width="85" height="490"/><rect x="485" y="340" width="65" height="460"/>
+      <rect x="540" y="295" width="105" height="505"/><rect x="635" y="330" width="75" height="470"/>
+      <rect x="700" y="330" width="75" height="470"/><rect x="765" y="295" width="105" height="505"/>
+      <rect x="860" y="340" width="65" height="460"/><rect x="915" y="310" width="85" height="490"/>
+      <rect x="990" y="330" width="75" height="470"/><rect x="1055" y="285" width="95" height="515"/>
+      <rect x="1140" y="310" width="60" height="490"/><rect x="1190" y="330" width="80" height="470"/>
+    </g>
+    <g fill="#080d18" style="animation:riseBuilding .8s ease .6s both">
+      <rect x="0" y="430" width="110" height="370"/><rect x="100" y="405" width="90" height="395"/>
+      <rect x="180" y="380" width="110" height="420"/><rect x="280" y="360" width="90" height="440"/>
+      <rect x="360" y="340" width="130" height="460"/><rect x="480" y="375" width="100" height="425"/>
+      <rect x="570" y="355" width="90" height="445"/><rect x="650" y="385" width="50" height="415"/>
+      <rect x="700" y="385" width="50" height="415"/>
+      <rect x="750" y="355" width="90" height="445"/><rect x="830" y="375" width="100" height="425"/>
+      <rect x="920" y="340" width="130" height="460"/><rect x="1040" y="360" width="90" height="440"/>
+      <rect x="1120" y="380" width="110" height="420"/><rect x="1220" y="405" width="90" height="395"/>
+    </g>
+    <g fill="rgba(255,220,100,0.55)">
+      <rect x="115" y="418" width="4" height="4"/><rect x="125" y="430" width="4" height="4"/>
+      <rect x="200" y="395" width="4" height="4"/><rect x="212" y="408" width="4" height="4"/>
+      <rect x="378" y="355" width="4" height="4"/><rect x="390" y="368" width="4" height="4"/>
+      <rect x="498" y="388" width="4" height="4"/><rect x="510" y="400" width="4" height="4"/>
+      <rect x="588" y="368" width="4" height="4"/><rect x="600" y="380" width="4" height="4"/>
+      <rect x="762" y="368" width="4" height="4"/><rect x="774" y="380" width="4" height="4"/>
+      <rect x="845" y="388" width="4" height="4"/><rect x="858" y="400" width="4" height="4"/>
+      <rect x="935" y="355" width="4" height="4"/><rect x="948" y="368" width="4" height="4"/>
+      <rect x="1138" y="395" width="4" height="4"/><rect x="1150" y="408" width="4" height="4"/>
+    </g>
+  </svg>
+
+  <div class="main-content" id="mainContent" style="opacity:0">
+    <div class="top-line">Smart City Intelligence</div>
+    <div class="orbis-logo">ORBIS</div>
+    <div class="tagline">Intelligent Living System</div>
+    <div class="divider"></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">Systems</div></div>
+      <div class="stat"><div class="stat-num" id="liveCount">-</div><div class="stat-label">Online</div></div>
+      <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Monitor</div></div>
     </div>
-    <div class="card">
-      <div class="c-label">Heat Index</div>
-      <div><span class="c-value ca" id="heatIndex">--</span><span class="c-unit">°C</span></div>
-      <div class="c-sub" id="heatSub">—</div>
+    <div class="enter-wrap" onclick="enterSystems()">
+      <div class="pulse-ring"></div>
+      <div class="enter-btn">ENTER ORBIS</div>
     </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="sys-ind"><div class="sdot" style="background:rgba(0,200,255,0.8)"></div>WEATHER</div>
+    <div class="sys-ind"><div class="sdot" style="background:rgba(0,255,150,0.8)"></div>GAS</div>
+    <div class="sys-ind"><div class="sdot" style="background:rgba(180,100,255,0.8)"></div>RFID</div>
   </div>
 </div>
 
-<div class="grid">
-  <div class="card"><div class="c-label">Dew Point</div><div><span class="c-value cg" id="dewPoint">--</span><span class="c-unit">°C</span></div></div>
-  <div class="card"><div class="c-label">Abs Humidity</div><div><span class="c-value cy" id="absHumidity">--</span><span class="c-unit">g/m³</span></div></div>
-  <div class="card"><div class="c-label">Vapor Pressure</div><div><span class="c-value ca" id="vaporPressure">--</span><span class="c-unit">hPa</span></div></div>
-  <div class="card"><div class="c-label">Light Level</div><div><span class="c-value cy" id="lightLevel">--</span><span class="c-unit">%</span></div><div class="c-bar"><div class="c-bar-fill" id="lightBar" style="background:var(--warm);width:0%"></div></div><div class="c-sub" id="dayNight">—</div></div>
+<!-- SYSTEMS PAGE -->
+<div id="systems-page">
+  <div class="page-bg"></div>
+  <svg class="page-bg-city" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet">
+    <g fill="#1a2550"><rect x="0" y="200" width="60" height="200"/><rect x="50" y="160" width="40" height="240"/><rect x="80" y="180" width="50" height="220"/><rect x="120" y="140" width="35" height="260"/><rect x="145" y="170" width="45" height="230"/><rect x="180" y="120" width="55" height="280"/><rect x="225" y="150" width="40" height="250"/><rect x="840" y="140" width="50" height="260"/><rect x="880" y="120" width="35" height="280"/><rect x="940" y="130" width="55" height="270"/><rect x="985" y="110" width="40" height="290"/><rect x="1130" y="120" width="70" height="280"/></g>
+    <g fill="#080d18"><rect x="0" y="260" width="100" height="140"/><rect x="90" y="240" width="80" height="160"/><rect x="160" y="220" width="100" height="180"/><rect x="250" y="200" width="80" height="200"/><rect x="320" y="180" width="120" height="220"/><rect x="430" y="210" width="90" height="190"/><rect x="510" y="190" width="80" height="210"/><rect x="640" y="190" width="80" height="210"/><rect x="710" y="210" width="90" height="190"/><rect x="790" y="180" width="120" height="220"/><rect x="900" y="200" width="80" height="200"/><rect x="970" y="220" width="100" height="180"/><rect x="1060" y="240" width="80" height="160"/><rect x="1130" y="260" width="70" height="140"/></g>
+  </svg>
+  <div class="pg-header">
+    <div class="back-btn" onclick="goBack('landing')">BACK</div>
+    <div class="pg-brand">ORBIS</div>
+    <div class="pg-time" id="sys-time"></div>
+  </div>
+  <div class="pg-body">
+    <div class="page-alert" id="sysAlert">FIRE ALERT - DANGEROUS CONDITIONS</div>
+    <div style="font-family:Space Mono,monospace;font-size:.6rem;letter-spacing:.25em;color:#3a6680;margin-bottom:16px;text-transform:uppercase">SELECT SYSTEM</div>
+    <div class="sys-card" onclick="openDetail('weather')"><div class="sc-header"><div class="sc-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div><div class="sc-name">WEATHER STATION</div><div class="sc-status" style="color:#00ff9d">LIVE</div></div><div class="sc-desc">Temperature, humidity, heat index, dew point, air quality</div><div class="sc-arrow">›</div></div>
+    <div class="sys-card" onclick="openDetail('gas')"><div class="sc-header"><div class="sc-dot" style="background:#00ff9d;box-shadow:0 0 6px #00ff9d"></div><div class="sc-name">GAS & FIRE MONITOR</div><div class="sc-status" id="gasCardStatus" style="color:#00ff9d">LIVE</div></div><div class="sc-desc">MQ2 smoke, MQ135 toxin, auto sprinkler pump</div><div class="sc-arrow">›</div></div>
+    <div class="sys-card" onclick="openDetail('door')"><div class="sc-header"><div class="sc-dot" style="background:#b06fff;box-shadow:0 0 6px #b06fff"></div><div class="sc-name">RFID DOOR LOCK</div><div class="sc-status" id="rfidCardStatus" style="color:#00ff9d">LIVE</div></div><div class="sc-desc">Door status, last card UID, flat access log</div><div class="sc-arrow">›</div></div>
+    <div class="cinematic-link" onclick="openCinematic()">VIEW FULL CINEMATIC DASHBOARD →</div>
+  </div>
 </div>
 
-<!-- GAS -->
-<div class="sec-title">GAS & FIRE MONITOR</div>
-<div class="grid">
-  <div class="card"><div class="c-label">Status</div><div class="c-value" id="gasStatus">--</div><div class="c-sub" id="gasSub">—</div></div>
-  <div class="card"><div class="c-label">Smoke MQ2</div><div><span class="c-value ca" id="mq2">--</span></div><div class="c-bar"><div class="c-bar-fill" id="mq2Bar" style="background:var(--warm);width:0%"></div></div></div>
-  <div class="card"><div class="c-label">Toxin MQ135</div><div><span class="c-value" style="color:#b06fff" id="mq135">--</span></div><div class="c-bar"><div class="c-bar-fill" id="mq135Bar" style="background:#b06fff;width:0%"></div></div></div>
-  <div class="card"><div class="c-label">Sprinkler</div><div class="c-value" id="pump">--</div></div>
+<!-- DETAIL PAGE -->
+<div id="detail-page">
+  <div class="page-bg"></div>
+  <svg class="page-bg-city" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet">
+    <g fill="#1a2550"><rect x="0" y="200" width="60" height="200"/><rect x="50" y="160" width="40" height="240"/><rect x="180" y="120" width="55" height="280"/><rect x="940" y="130" width="55" height="270"/><rect x="1130" y="120" width="70" height="280"/></g>
+    <g fill="#080d18"><rect x="0" y="260" width="100" height="140"/><rect x="160" y="220" width="100" height="180"/><rect x="320" y="180" width="120" height="220"/><rect x="790" y="180" width="120" height="220"/><rect x="1060" y="240" width="80" height="160"/><rect x="1130" y="260" width="70" height="140"/></g>
+  </svg>
+  <div class="pg-header">
+    <div class="back-btn" onclick="goBack('systems')">BACK</div>
+    <div class="pg-brand" id="detail-title">--</div>
+    <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:#00ff9d;box-shadow:0 0 6px #00ff9d;animation:blink 2s infinite"></div>
+  </div>
+  <div class="pg-body">
+    <div class="page-alert" id="detailAlert">FIRE ALERT - DANGEROUS CONDITIONS</div>
+    <div id="detail-body"><div class="loading-txt">Loading...</div></div>
+  </div>
 </div>
 
-<!-- DOOR -->
-<div class="sec-title">RFID DOOR LOCK</div>
-<div class="grid">
-  <div class="card"><div class="c-label">Door Status</div><div class="c-value" id="door">--</div></div>
-  <div class="card"><div class="c-label">Last Flat</div><div class="c-value cy" id="flat">--</div></div>
-  <div class="card"><div class="c-label">RFID Module</div><div class="c-value" id="rfidStatus">--</div></div>
-  <div class="card"><div class="c-label">Last UID</div><div style="font-family:'Space Mono';font-size:.8rem;color:var(--glow);margin-top:6px;letter-spacing:.1em" id="uid">--</div></div>
+<!-- CINEMATIC ALL-SYSTEMS PAGE -->
+<div id="weather-embed-page" style="display:none;position:fixed;inset:0;z-index:200;background:#020507;overflow-y:auto;">
+  <div style="padding:10px 16px;border-bottom:1px solid #0d2233;background:#020507;position:sticky;top:0;display:flex;align-items:center;gap:12px;z-index:10;">
+    <div class="back-btn" onclick="closeCinematic()">BACK</div>
+    <div style="font-family:Orbitron,monospace;font-weight:900;font-size:.95rem;color:#00d4ff;letter-spacing:.2em;">ORBIS — ALL SYSTEMS</div>
+    <div style="margin-left:auto;font-family:Space Mono,monospace;font-size:.6rem;color:#3a6680;" id="cin-time"></div>
+  </div>
+  <div style="padding:20px;max-width:1000px;margin:auto;" id="cin-body"></div>
 </div>
 
-<footer>ORBIS | SMART MINI CITY | ESP32 + SUPABASE | <span class="bl">*</span> LIVE</footer>
+<!-- CINEMATIC WEATHER PAGE -->
+<div id="weather-page" style="display:none;position:fixed;inset:0;z-index:300;background:#020507;overflow-y:auto;">
+  <div style="padding:10px 16px;border-bottom:1px solid #0d2233;background:#020507;position:sticky;top:0;display:flex;align-items:center;gap:12px;z-index:10;">
+    <div class="back-btn" onclick="closeWeatherPage()">BACK</div>
+    <div style="font-family:Orbitron,monospace;font-weight:900;font-size:.95rem;color:#00d4ff;letter-spacing:.2em;">ORBIS — WEATHER STATION</div>
+    <div style="margin-left:auto;font-family:Space Mono,monospace;font-size:.6rem;color:#3a6680;" id="wp-time"></div>
+  </div>
+  <div style="padding:20px 16px 40px;max-width:900px;margin:auto;">
+    <style>
+    :root{--bg:#020507;--panel:#070d12;--border:#0d2233;--glow:#00d4ff;--glow2:#00ff9d;--warm:#ff9f43;--text:#c8e8f5;--muted:#3a6680;--danger:#ff4757;}
+    .wp-body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;}
+    .wp-body::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.012) 2px,rgba(0,212,255,.012) 4px);}
+    .alert-bar{display:none;background:var(--danger);color:#fff;font-family:'Orbitron';font-size:.75rem;letter-spacing:.15em;padding:10px;text-align:center;border-radius:3px;margin-bottom:16px;animation:blk 1s step-start infinite;}
+    .alert-bar.show{display:block;}
+    .sbar{display:flex;align-items:center;gap:10px;font-size:.65rem;color:var(--muted);margin-bottom:20px;flex-wrap:wrap;}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--glow2);animation:pd 2s infinite;}
+    @keyframes pd{0%,100%{opacity:1}50%{opacity:.25}}
+    .hero{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+    .hm{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--glow);border-radius:3px;padding:20px 24px;position:relative;overflow:hidden;}
+    .sl{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--glow),transparent);animation:sc2 3s linear infinite;}
+    @keyframes sc2{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .tv{font-family:'Orbitron';font-weight:900;font-size:4rem;line-height:1;color:var(--warm);}
+    .tu{font-size:1.5rem;color:var(--muted);vertical-align:super;}
+    .tl{font-size:.62rem;letter-spacing:.28em;color:var(--muted);margin-top:7px;}
+    .badge{display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid var(--glow);border-radius:2px;font-size:.7rem;color:var(--glow);}
+    .side{display:flex;flex-direction:column;gap:12px;flex:1;min-width:160px;}
+    .mc{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:14px 16px;}
+    .ml{font-size:.6rem;letter-spacing:.22em;color:var(--muted);margin-bottom:7px;text-transform:uppercase;}
+    .mv{font-family:'Orbitron';font-weight:700;font-size:1.5rem;}
+    .mu{font-size:.72rem;color:var(--muted);margin-left:3px;}
+    .msub{font-size:.62rem;color:var(--muted);margin-top:5px;}
+    .gt{height:3px;background:var(--border);border-radius:2px;margin-top:7px;}
+    .gf{height:100%;border-radius:2px;transition:width 1s ease;}
+    .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:20px;}
+    .cy{color:var(--glow)}.cg{color:var(--glow2)}.ca{color:var(--warm)}.cr{color:var(--danger)}
+    .csec{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:16px 18px;margin-bottom:20px;}
+    .cscale{height:9px;border-radius:2px;background:linear-gradient(90deg,#3a6680 0%,#00d4ff 25%,#00ff9d 45%,#ff9f43 65%,#ff6b35 80%,#ff4757 100%);}
+    .cbw{position:relative;}
+    .cn{position:absolute;top:-4px;width:3px;height:17px;background:#fff;border-radius:2px;transition:left 1s ease;transform:translateX(-50%);}
+    .clabels{display:flex;justify-content:space-between;margin-top:7px;font-size:.58rem;color:var(--muted);}
+    .clevel{font-family:'Orbitron';font-size:.95rem;font-weight:700;margin-top:10px;}
+    .csect{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:18px 18px 14px;margin-bottom:20px;}
+    .ctit{font-size:.62rem;letter-spacing:.28em;color:var(--muted);margin-bottom:14px;display:flex;justify-content:space-between;}
+    .ctit span{color:var(--glow);}
+    .wfooter{text-align:center;font-size:.6rem;color:var(--muted);letter-spacing:.18em;padding-top:14px;border-top:1px solid var(--border);}
+    .bl{animation:blk 1s step-start infinite;}
+    </style>
+    <div class="wp-body">
+      <div class="alert-bar" id="wp-alertBar">ALERT - DANGEROUS CONDITIONS</div>
+      <div class="sbar"><div class="dot"></div><span>LIVE</span><span id="wp-dn" style="color:var(--glow2)">-</span><span style="margin-left:auto">Sync: <span id="wp-ls">-</span></span></div>
+      <div class="hero">
+        <div class="hm"><div class="sl"></div>
+          <div style="font-size:1.3rem;margin-bottom:5px" id="wp-ci">-</div>
+          <div><span class="tv" id="wp-tv">--</span><span class="tu ca">C</span></div>
+          <div class="tl">AMBIENT TEMPERATURE</div>
+          <div class="badge" id="wp-bdg">SCANNING</div>
+        </div>
+        <div class="side">
+          <div class="mc"><div class="ml">Humidity</div><div><span class="mv cy" id="wp-hv">--</span><span class="mu">%</span></div><div class="gt"><div class="gf" id="wp-hg" style="background:var(--glow);width:0%"></div></div><div class="msub" id="wp-hd">-</div></div>
+          <div class="mc"><div class="ml">Heat Index</div><div><span class="mv ca" id="wp-hiv">--</span><span class="mu">C</span></div><div class="msub" id="wp-hid">-</div></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="mc"><div class="ml">Dew Point</div><div><span class="mv cg" id="wp-dw">--</span><span class="mu">C</span></div><div class="msub" id="wp-dd">-</div></div>
+        <div class="mc"><div class="ml">Abs Humidity</div><div><span class="mv cy" id="wp-ah">--</span><span class="mu">g/m3</span></div></div>
+        <div class="mc"><div class="ml">Vapor Pressure</div><div><span class="mv ca" id="wp-vp">--</span><span class="mu">hPa</span></div></div>
+        <div class="mc"><div class="ml">Light Level</div><div><span class="mv cy" id="wp-ll">--</span><span class="mu">%</span></div><div class="gt"><div class="gf" id="wp-lg" style="background:var(--warm);width:0%"></div></div></div>
+        <div class="mc"><div class="ml">Sensor</div><div><span class="mv cg" id="wp-ss">OK</span></div><div class="msub">DHT22 GPIO4</div></div>
+      </div>
+      <div class="csec">
+        <div class="ml" style="margin-bottom:10px">THERMAL COMFORT INDEX</div>
+        <div class="cbw"><div class="cscale"></div><div class="cn" id="wp-nd" style="left:0%"></div></div>
+        <div class="clabels"><span>Cool</span><span>Pleasant</span><span>Warm</span><span>Caution</span><span>Danger</span></div>
+        <div class="clevel ca" id="wp-cl">-</div>
+      </div>
+      <div class="csect">
+        <div class="ctit">TREND - 2 HR WINDOW<span id="wp-cp">0 pts</span></div>
+        <canvas id="wp-hc" height="110" style="display:block;width:100%"></canvas>
+        <div style="display:flex;gap:18px;margin-top:10px;font-size:.62rem;color:var(--muted)"><span style="color:var(--warm)">Temp C</span> / <span style="color:var(--glow)">Humidity %</span></div>
+      </div>
+      <div class="wfooter">ORBIS | WEATHER STATION | ESP32 + DHT22 | <span class="bl">*</span> ONLINE</div>
+    </div>
+  </div>
+</div>
 
 <script>
+const WORKER = 'https://orbis-relay.riyaafrin320.workers.dev';
+let liveData = null;
+let lastAlertState = false;
+let dialShown = false;
+let wpHist = {times:[], temps:[], hums:[]};
 
+// STARFIELD — randomizes position each load
+(()=>{
+  const c = document.getElementById('canvas');
+  const ctx = c.getContext('2d');
+  function rs(){c.width=window.innerWidth;c.height=window.innerHeight;}
+  rs(); window.addEventListener('resize',rs);
+  const S = Array.from({length:200}, ()=>({
+    x: Math.random()*window.innerWidth,
+    y: Math.random()*window.innerHeight*(0.55 + Math.random()*0.2),
+    r: Math.random()*1.3+.2,
+    a: Math.random(),
+    da: (Math.random()-.5)*.004
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    S.forEach(s=>{
+      s.a+=s.da; if(s.a<=0||s.a>=1) s.da=-s.da;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(200,230,255,'+s.a+')'; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 
-function tick(){document.getElementById('clk').textContent=new Date().toLocaleTimeString();}
-setInterval(tick,1000);tick();
+// INTRO
+window.addEventListener('load',()=>setTimeout(()=>{
+  const c=document.getElementById('mainContent');
+  c.style.animation='orbisReveal .8s ease forwards';
+  c.style.opacity='1';
+},500));
 
-async function fetchLatest(){
+// CLOCKS
+setInterval(()=>{
+  const t=new Date().toTimeString().slice(0,8);
+  ['sys-time','cin-time','wp-time'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t;});
+},1000);
+
+// NAV
+function enterSystems(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('systems-page').style.display='block';
+}
+function goBack(to){
+  document.getElementById('detail-page').style.display='none';
+  document.getElementById('systems-page').style.display='none';
+  document.getElementById('landing').style.display='none';
+  if(to==='landing'){document.getElementById('landing').style.display='flex';}
+  else{document.getElementById('systems-page').style.display='block';}
+}
+function openDetail(sys){
+  document.getElementById('systems-page').style.display='none';
+  document.getElementById('detail-page').style.display='block';
+  renderDetail(sys);
+}
+function openCinematic(){
+  document.getElementById('weather-embed-page').style.display='block';
+  renderCinematic();
+}
+function closeCinematic(){document.getElementById('weather-embed-page').style.display='none';}
+function openWeatherPage(){document.getElementById('weather-page').style.display='block'; updateWeatherPage();}
+function closeWeatherPage(){document.getElementById('weather-page').style.display='none';}
+
+// FETCH
+async function fetchData(){
   try{
-    const res = await fetch("https://orbis-relay.riyaafrin320.workers.dev");
-    if(!res.ok) throw new Error();
-    const rows = await res.json();
-    if(!rows.length) return;
-    const d = rows[0];
-    const age = (Date.now() - new Date(d.created_at).getTime())/1000;
-    const online = age < 30;
+    const r = await fetch(WORKER);
+    if(!r.ok) throw new Error();
+    const rows = await r.json();
+    if(!rows||!rows.length) return;
+    liveData = rows[0];
 
-    document.getElementById('liveDot').className = online?'dot':'dot offline';
-    document.getElementById('liveLabel').textContent = online?'LIVE':'OFFLINE';
-    document.getElementById('lastSync').textContent = new Date(d.created_at).toLocaleTimeString();
-    document.getElementById('offlineBar').className = online?'offline-bar':'offline-bar show';
-    document.getElementById('alertBar').className = d.alert?'alert-bar show':'alert-bar';
+    // remap for compatibility
+    const d = liveData;
+    d.heatIndex = d.heat_index;
+    d.dewPoint = d.dew_point;
+    d.absHumidity = d.abs_humidity;
+    d.vaporPressure = d.vapor_pressure;
+    d.lightLevel = d.light_level;
+    d.isDay = d.is_day;
+    d.sensorOk = d.sensor_ok;
+    d.rfidOnline = d.rfid_online;
 
-    document.getElementById('temp').textContent = d.temperature?.toFixed(1)??'--';
-    document.getElementById('humidity').textContent = d.humidity?.toFixed(1)??'--';
-    document.getElementById('heatIndex').textContent = d.heat_index?.toFixed(1)??'--';
-    document.getElementById('dewPoint').textContent = d.dew_point?.toFixed(1)??'--';
-    document.getElementById('absHumidity').textContent = d.abs_humidity?.toFixed(2)??'--';
-    document.getElementById('vaporPressure').textContent = d.vapor_pressure?.toFixed(2)??'--';
-    document.getElementById('condition').textContent = d.condition??'--';
-    document.getElementById('comfort').textContent = d.comfort??'--';
-    document.getElementById('lightLevel').textContent = d.light_level??'--';
-    document.getElementById('dayNight').textContent = d.is_day?'Daytime':'Nighttime';
-    document.getElementById('humBar').style.width = Math.min(d.humidity,100)+'%';
-    document.getElementById('lightBar').style.width = Math.min(d.light_level,100)+'%';
-    document.getElementById('humSub').textContent = d.humidity>70?'High':'Comfortable';
-    document.getElementById('heatSub').textContent = d.heat_index>d.temperature?'Feels hotter':'Matches temp';
+    // chart history
+    const now = Math.floor(Date.now()/1000);
+    if(d.temperature&&(!wpHist.times.length||(now-wpHist.times[wpHist.times.length-1])>=10)){
+      wpHist.times.push(now); wpHist.temps.push(d.temperature); wpHist.hums.push(d.humidity);
+      if(wpHist.times.length>48){wpHist.times.shift();wpHist.temps.shift();wpHist.hums.shift();}
+    }
 
-    const gc = d.gas==='DANGER'?'#ff4757':d.gas==='WARNING'?'#ff9f43':'#00ff9d';
-    document.getElementById('gasStatus').textContent = d.gas??'--';
-    document.getElementById('gasStatus').style.color = gc;
-    document.getElementById('gasSub').textContent = d.gas==='DANGER'?'Evacuate now!':d.gas==='WARNING'?'Moderate':'Air clean';
-    document.getElementById('mq2').textContent = d.mq2??'--';
-    document.getElementById('mq135').textContent = d.mq135??'--';
-    document.getElementById('mq2Bar').style.width = Math.min((d.mq2/1023)*100,100)+'%';
-    document.getElementById('mq135Bar').style.width = Math.min((d.mq135/1023)*100,100)+'%';
-    document.getElementById('pump').textContent = d.pump??'--';
-    document.getElementById('pump').style.color = d.pump==='ON'?'#ff4757':'#00ff9d';
+    const alert = d.alert||d.gas==='DANGER';
+    document.getElementById('alertOverlay').className=alert?'alert-overlay active':'alert-overlay';
+    document.getElementById('alertPopup').className=alert?'alert-popup active':'alert-popup';
+    document.getElementById('sysAlert').className=alert?'page-alert show':'page-alert';
+    document.getElementById('detailAlert').className=alert?'page-alert show':'page-alert';
 
-    const dc = d.door==='LOCKED'?'#00ff9d':d.door==='OPEN'?'#ff9f43':'#ff4757';
-    document.getElementById('door').textContent = d.door??'--';
-    document.getElementById('door').style.color = dc;
-    document.getElementById('flat').textContent = d.flat??'--';
-    document.getElementById('uid').textContent = d.uid??'--';
-    document.getElementById('rfidStatus').textContent = d.rfid_online?'ONLINE':'OFFLINE';
-    document.getElementById('rfidStatus').style.color = d.rfid_online?'#00ff9d':'#ff4757';
-  }catch(e){
-    document.getElementById('liveLabel').textContent='ERROR';
+    // vibrate on new alert
+    if(alert&&!lastAlertState){
+      if(navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
+      if(!dialShown){dialShown=true;showFireDial();}
+    }
+    if(!alert){lastAlertState=false;dialShown=false;}
+    lastAlertState=alert;
+
+    const gs=d.gas;
+    const gc=gs==='DANGER'?'#ff4757':gs==='WARNING'?'#ff9f43':'#00ff9d';
+    const gcEl=document.getElementById('gasCardStatus');
+    if(gcEl){gcEl.textContent=gs==='DANGER'?'DANGER':gs==='WARNING'?'WARNING':'LIVE';gcEl.style.color=gc;}
+    const ro=document.getElementById('rfidCardStatus');
+    if(ro){ro.textContent=d.rfidOnline?'LIVE':'OFFLINE';ro.style.color=d.rfidOnline?'#00ff9d':'#ff4757';}
+    document.getElementById('liveCount').textContent=d.rfidOnline?'3':'2';
+
+    // update weather page if open
+    if(document.getElementById('weather-page').style.display!=='none') updateWeatherPage();
+    // update cinematic if open
+    if(document.getElementById('weather-embed-page').style.display!=='none') renderCinematic();
+  }catch(e){}
+}
+fetchData(); setInterval(fetchData,5000);
+
+// FIRE DIAL
+function showFireDial(){
+  document.getElementById('fireDial').className='fire-dial active';
+  const s=document.getElementById('dialStatus');
+  s.textContent='Dialing...';
+  setTimeout(()=>{s.textContent='Connecting...';},1500);
+  setTimeout(()=>{s.textContent='Call connected - Fire brigade alerted';},3000);
+}
+function closeDial(){document.getElementById('fireDial').className='fire-dial';}
+
+// CARD HELPER
+function dc(label,value,unit,sub,color,bar,barColor){
+  let b='';
+  if(bar!==undefined){b='<div class="d-bar-wrap"><div class="d-bar-track"><div class="d-bar-fill" style="width:'+Math.min(bar,100)+'%;background:'+(barColor||'#00d4ff')+'"></div></div></div>';}
+  return '<div class="d-card"><div class="d-label">'+label+'</div><div class="d-value" style="color:'+(color||'#c8e8f5')+'">'+value+'<span style="font-size:.7rem;color:#3a6680;margin-left:4px">'+(unit||'')+'</span></div>'+(sub?'<div class="d-sub">'+sub+'</div>':'')+b+'</div>';
+}
+
+// RENDER DETAIL
+function renderDetail(sys){
+  const d=liveData;
+  if(sys==='weather'){
+    document.getElementById('detail-title').textContent='WEATHER STATION';
+    if(!d){document.getElementById('detail-body').innerHTML='<div class="loading-txt">Connecting...</div>';return;}
+    document.getElementById('detail-body').innerHTML=
+      '<div class="sec-title">SCREEN DATA</div><div class="d-grid">'
+      +dc('Temperature',d.temperature.toFixed(1),'C',d.condition,'#ff9f43')
+      +dc('Humidity',d.humidity.toFixed(1),'%',d.humidity>70?'High':'Comfortable','#00d4ff',d.humidity,'#00d4ff')
+      +dc('Heat Index',d.heatIndex.toFixed(1),'C',d.comfort,'#ff9f43')
+      +dc('Condition',d.condition,'','','#00d4ff')
+      +'</div>'
+      +'<div class="sec-title">REAL DATA</div><div class="d-grid">'
+      +dc('Dew Point',d.dewPoint.toFixed(1),'C',d.dewPoint>20?'Muggy':'Dry','#00ff9d')
+      +dc('Abs Humidity',d.absHumidity.toFixed(2),'g/m3','','#00d4ff')
+      +dc('Vapor Pressure',d.vaporPressure.toFixed(2),'hPa','','#ff9f43')
+      +dc('Light Level',d.lightLevel,'%',d.isDay?'Daytime':'Nighttime','#00d4ff',d.lightLevel,'#ff9f43')
+      +dc('Thermal Comfort',d.comfort,'','','#ff9f43')
+      +dc('Sensor',d.sensorOk?'OK':'ERR','','DHT22 GPIO4',d.sensorOk?'#00ff9d':'#ff4757')
+      +'</div>'
+      +'<div class="cinematic-link" onclick="openWeatherPage()">VIEW CINEMATIC WEATHER DASHBOARD →</div>';
+  }
+  else if(sys==='gas'){
+    document.getElementById('detail-title').textContent='GAS & FIRE';
+    if(!d){document.getElementById('detail-body').innerHTML='<div class="loading-txt">Connecting...</div>';return;}
+    const gc=d.gas==='DANGER'?'#ff4757':d.gas==='WARNING'?'#ff9f43':'#00ff9d';
+    const m2p=Math.min(d.mq2/1023*100,100);
+    const m13p=Math.min(d.mq135/1023*100,100);
+    const m2c=d.mq2>500?'#ff4757':d.mq2>350?'#ff9f43':'#00ff9d';
+    document.getElementById('detail-body').innerHTML=
+      '<div class="sec-title">SCREEN DATA</div><div class="d-grid">'
+      +dc('Status',d.gas,'',d.gas==='DANGER'?'Evacuate now!':d.gas==='WARNING'?'Moderate':'Air clean',gc)
+      +dc('Smoke MQ2',d.mq2,'','Raw value','#ff9f43',m2p,m2c)
+      +dc('Toxin MQ135',d.mq135,'','Raw value','#b06fff',m13p,'#b06fff')
+      +dc('Pump',d.pump,'','Auto trigger',d.pump==='ON'?'#ff4757':'#00ff9d')
+      +'</div>'
+      +'<div class="sec-title">REAL DATA</div><div class="d-grid">'
+      +dc('Smoke %',m2p.toFixed(1),'%','MQ2 level',m2c,m2p,m2c)
+      +dc('Toxin %',m13p.toFixed(1),'%','MQ135 level','#b06fff',m13p,'#b06fff')
+      +dc('Alert Level',d.gas==='DANGER'?'HIGH':d.gas==='WARNING'?'MED':'LOW','','',gc)
+      +dc('Sprinkler',d.pump==='ON'?'ACTIVE':'STANDBY','','Auto on DANGER',d.pump==='ON'?'#ff4757':'#00ff9d')
+      +'</div>';
+  }
+  else if(sys==='door'){
+    document.getElementById('detail-title').textContent='RFID DOOR';
+    if(!d){document.getElementById('detail-body').innerHTML='<div class="loading-txt">Connecting...</div>';return;}
+    const dc2=d.door==='LOCKED'?'#00ff9d':d.door==='OPEN'?'#ff9f43':'#ff4757';
+    document.getElementById('detail-body').innerHTML=
+      '<div class="sec-title">SCREEN DATA</div><div class="d-grid">'
+      +dc('Door Status',d.door,'','',dc2)
+      +dc('Last Flat',d.flat,'','Last accessed','#c8e8f5')
+      +'</div>'
+      +'<div class="sec-title">REAL DATA</div>'
+      +'<div class="info-block"><div class="d-label">Last card UID</div><div style="font-family:Space Mono,monospace;font-size:.85rem;color:#00d4ff;margin-top:6px;letter-spacing:.15em">'+d.uid+'</div></div>'
+      +'<div class="d-grid">'
+      +dc('RFID Module',d.rfidOnline?'ONLINE':'OFFLINE','','ESP32 RFID',d.rfidOnline?'#00ff9d':'#ff4757')
+      +dc('Access',d.door==='DENIED'?'DENIED':d.door==='OPEN'?'GRANTED':'LOCKED','','',dc2)
+      +'</div>';
   }
 }
-fetchLatest();
-setInterval(fetchLatest,5000);
+
+// RENDER CINEMATIC ALL SYSTEMS
+function renderCinematic(){
+  const d=liveData;
+  if(!d){document.getElementById('cin-body').innerHTML='<div style="color:#3a6680;font-family:Space Mono,monospace;font-size:.65rem;text-align:center;padding:40px">Loading...</div>';return;}
+  const m2p=Math.min(d.mq2/1023*100,100).toFixed(1);
+  const m13p=Math.min(d.mq135/1023*100,100).toFixed(1);
+  const gc=d.gas==='DANGER'?'#ff4757':d.gas==='WARNING'?'#ff9f43':'#00ff9d';
+  const dc2=d.door==='LOCKED'?'#00ff9d':d.door==='OPEN'?'#ff9f43':'#ff4757';
+  document.getElementById('cin-body').innerHTML=
+    '<div class="sec-title">WEATHER STATION</div><div class="d-grid">'
+    +dc('Temperature',d.temperature.toFixed(1),'C',d.condition,'#ff9f43')
+    +dc('Humidity',d.humidity.toFixed(1),'%',d.humidity>70?'High':'Comfortable','#00d4ff',d.humidity,'#00d4ff')
+    +dc('Heat Index',d.heatIndex.toFixed(1),'C',d.comfort,'#ff9f43')
+    +dc('Dew Point',d.dewPoint.toFixed(1),'C','','#00ff9d')
+    +dc('Light Level',d.lightLevel,'%',d.isDay?'Daytime':'Nighttime','#00d4ff',d.lightLevel,'#ff9f43')
+    +dc('Condition',d.condition,'','','#00d4ff')
+    +'</div>'
+    +'<div class="sec-title">GAS & FIRE</div><div class="d-grid">'
+    +dc('Status',d.gas,'',d.gas==='DANGER'?'Evacuate!':d.gas==='WARNING'?'Moderate':'Air clean',gc)
+    +dc('Smoke MQ2',d.mq2,'','Raw','#ff9f43',m2p,'#ff9f43')
+    +dc('Toxin MQ135',d.mq135,'','Raw','#b06fff',m13p,'#b06fff')
+    +dc('Sprinkler',d.pump==='ON'?'ACTIVE':'STANDBY','','',d.pump==='ON'?'#ff4757':'#00ff9d')
+    +'</div>'
+    +'<div class="sec-title">RFID DOOR</div><div class="d-grid">'
+    +dc('Door',d.door,'','',dc2)
+    +dc('Last Flat',d.flat,'','','#c8e8f5')
+    +dc('RFID',d.rfidOnline?'ONLINE':'OFFLINE','','',d.rfidOnline?'#00ff9d':'#ff4757')
+    +dc('Access',d.door==='DENIED'?'DENIED':d.door==='OPEN'?'GRANTED':'LOCKED','','',dc2)
+    +'</div>'
+    +'<div class="cinematic-link" onclick="openWeatherPage()" style="margin-top:8px">VIEW CINEMATIC WEATHER →</div>';
+}
+
+// WEATHER PAGE UPDATE
+function updateWeatherPage(){
+  const d=liveData;
+  if(!d) return;
+  document.getElementById('wp-time').textContent=new Date().toTimeString().slice(0,8);
+  document.getElementById('wp-tv').textContent=d.temperature.toFixed(1);
+  document.getElementById('wp-hv').textContent=d.humidity.toFixed(1);
+  document.getElementById('wp-hiv').textContent=d.heatIndex.toFixed(1);
+  document.getElementById('wp-dw').textContent=d.dewPoint.toFixed(1);
+  document.getElementById('wp-ah').textContent=d.absHumidity.toFixed(2);
+  document.getElementById('wp-vp').textContent=d.vaporPressure.toFixed(2);
+  document.getElementById('wp-ci').textContent=d.condition;
+  document.getElementById('wp-bdg').textContent=d.condition.toUpperCase();
+  document.getElementById('wp-hg').style.width=Math.min(d.humidity,100)+'%';
+  document.getElementById('wp-hd').textContent=d.humidity>70?'High - feels heavy':d.humidity>40?'Comfortable':'Dry';
+  document.getElementById('wp-hid').textContent=d.heatIndex>d.temperature?'Feels hotter':'Matches temp';
+  document.getElementById('wp-dd').textContent=d.dewPoint>20?'Muggy':d.dewPoint>12?'Comfortable':'Dry';
+  document.getElementById('wp-ll').textContent=d.lightLevel;
+  document.getElementById('wp-lg').style.width=Math.min(d.lightLevel,100)+'%';
+  document.getElementById('wp-dn').textContent=d.isDay?'DAYTIME':'NIGHTTIME';
+  const pct=Math.max(0,Math.min(100,((d.heatIndex-15)/(54-15))*100));
+  document.getElementById('wp-nd').style.left=pct+'%';
+  document.getElementById('wp-cl').textContent=d.comfort;
+  document.getElementById('wp-ss').textContent=d.sensorOk?'OK':'ERR';
+  document.getElementById('wp-ss').className='mv '+(d.sensorOk?'cg':'cr');
+  document.getElementById('wp-ls').textContent=new Date().toTimeString().slice(0,8);
+  document.getElementById('wp-alertBar').className=d.alert?'alert-bar show':'alert-bar';
+  drawWpChart();
+}
+
+// WEATHER PAGE CHART
+function drawWpChart(){
+  const c=document.getElementById('wp-hc');
+  const ctx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=c.offsetWidth||800,H=110;
+  c.width=W*dpr;c.height=H*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
+  const pts=wpHist.temps.length;
+  if(pts<2){ctx.fillStyle='#3a6680';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('Collecting data...',W/2,H/2);return;}
+  const p={t:8,r:8,b:22,l:34};
+  const cw=W-p.l-p.r,ch=H-p.t-p.b;
+  const tMin=Math.min(...wpHist.temps)-2,tMax=Math.max(...wpHist.temps)+2;
+  const toX=i=>p.l+(i/(pts-1))*cw;
+  const toYT=v=>p.t+ch-((v-tMin)/(tMax-tMin))*ch;
+  const toYH=v=>p.t+ch-(v/100)*ch;
+  ctx.strokeStyle='#0d2233';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=p.t+i*(ch/4);ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
+  ctx.beginPath();wpHist.hums.forEach((h,i)=>i===0?ctx.moveTo(toX(i),toYH(h)):ctx.lineTo(toX(i),toYH(h)));
+  ctx.lineTo(toX(pts-1),p.t+ch);ctx.lineTo(toX(0),p.t+ch);ctx.closePath();
+  ctx.fillStyle='rgba(0,212,255,.07)';ctx.fill();
+  ctx.beginPath();wpHist.hums.forEach((h,i)=>i===0?ctx.moveTo(toX(i),toYH(h)):ctx.lineTo(toX(i),toYH(h)));
+  ctx.strokeStyle='rgba(0,212,255,.55)';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.beginPath();wpHist.temps.forEach((t,i)=>i===0?ctx.moveTo(toX(i),toYT(t)):ctx.lineTo(toX(i),toYT(t)));
+  ctx.lineTo(toX(pts-1),p.t+ch);ctx.lineTo(toX(0),p.t+ch);ctx.closePath();
+  ctx.fillStyle='rgba(255,159,67,.1)';ctx.fill();
+  ctx.beginPath();wpHist.temps.forEach((t,i)=>i===0?ctx.moveTo(toX(i),toYT(t)):ctx.lineTo(toX(i),toYT(t)));
+  ctx.strokeStyle='rgba(255,159,67,.9)';ctx.lineWidth=2;ctx.stroke();
+  const lx=toX(pts-1),ly=toYT(wpHist.temps[pts-1]);
+  ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fillStyle='#ff9f43';ctx.fill();
+  ctx.fillStyle='#3a6680';ctx.font='10px monospace';ctx.textAlign='right';
+  [tMin+1,(tMin+tMax)/2,tMax-1].forEach(v=>{ctx.fillText(v.toFixed(0),p.l-4,toYT(v)+4);});
+  ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(pts/5));
+  for(let i=0;i<pts;i+=step){const ts=new Date(wpHist.times[i]*1000);ctx.fillText(ts.getHours().toString().padStart(2,'0')+':'+ts.getMinutes().toString().padStart(2,'0'),toX(i),H-5);}
+  document.getElementById('wp-cp').textContent=pts+' pts';
+}
+window.addEventListener('resize', drawWpChart);
 </script>
 </body>
 </html>
