@@ -118,18 +118,14 @@ footer{text-align:center;font-size:.6rem;color:var(--muted);letter-spacing:.18em
 <footer>ORBIS | SMART MINI CITY | ESP32 + SUPABASE | <span class="bl">*</span> LIVE</footer>
 
 <script>
-const SUPABASE_URL = "https://kzzjtixwqprhxaanydri.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dmVwcG1zYXl6ZmR3cWV3bmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTExODAsImV4cCI6MjA5NjIyNzE4MH0.wspha3rv9a9LZZBuhgqOZ-6NgDaKKIxr2ID2WEE5Wdg";
+
 
 function tick(){document.getElementById('clk').textContent=new Date().toLocaleTimeString();}
 setInterval(tick,1000);tick();
 
 async function fetchLatest(){
   try{
-    const res = await fetch(
-      SUPABASE_URL+"/rest/v1/sensor_data?select=*&order=created_at.desc&limit=1",
-      { headers:{ "apikey": SUPABASE_KEY, "Authorization": "Bearer "+SUPABASE_KEY } }
-    );
+    const res = await fetch("https://orbis-relay.riyaafrin320.workers.dev");
     if(!res.ok) throw new Error();
     const rows = await res.json();
     if(!rows.length) return;
