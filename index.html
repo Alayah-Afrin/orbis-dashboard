@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORBIS — Smart City Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020507;--panel:#070d12;--border:#0d2233;--glow:#00d4ff;--glow2:#00ff9d;--warm:#ff9f43;--text:#c8e8f5;--muted:#3a6680;--danger:#ff4757;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;padding:20px 16px 40px;max-width:960px;margin:auto;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.012) 2px,rgba(0,212,255,.012) 4px);}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;border-bottom:1px solid var(--border);padding-bottom:14px;flex-wrap:wrap;gap:10px;}
+.brand{font-family:'Orbitron';font-weight:900;font-size:1.2rem;letter-spacing:.2em;color:var(--glow);}
+.brand small{color:var(--muted);font-size:.55em;display:block;letter-spacing:.3em;}
+#clk{font-family:'Orbitron';font-size:.9rem;color:var(--glow);}
+.sbar{display:flex;align-items:center;gap:10px;font-size:.65rem;color:var(--muted);margin-bottom:20px;flex-wrap:wrap;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--glow2);animation:pd 2s infinite;}
+.dot.offline{background:var(--muted);animation:none;}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.25}}
+.alert-bar{display:none;background:var(--danger);color:#fff;font-family:'Orbitron';font-size:.75rem;letter-spacing:.15em;padding:10px;text-align:center;border-radius:3px;margin-bottom:16px;animation:blk 1s step-start infinite;}
+.alert-bar.show{display:block;}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:0}}
+.offline-bar{display:none;background:#1a2a3a;color:var(--muted);font-family:'Orbitron';font-size:.7rem;letter-spacing:.15em;padding:10px;text-align:center;border-radius:3px;margin-bottom:16px;border:1px solid var(--border);}
+.offline-bar.show{display:block;}
+.sec-title{font-family:'Orbitron';font-size:.6rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;margin-bottom:20px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:14px 16px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.2),transparent);}
+.c-label{font-size:.58rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;}
+.c-value{font-family:'Orbitron';font-weight:700;font-size:1.4rem;}
+.c-unit{font-size:.7rem;color:var(--muted);margin-left:3px;}
+.c-sub{font-size:.6rem;color:var(--muted);margin-top:5px;}
+.c-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;}
+.c-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+.hero{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+.hero-main{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--glow);border-radius:3px;padding:20px 24px;position:relative;overflow:hidden;}
+.scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--glow),transparent);animation:sc 3s linear infinite;}
+@keyframes sc{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.temp-val{font-family:'Orbitron';font-weight:900;font-size:4rem;line-height:1;color:var(--warm);}
+.side-cards{display:flex;flex-direction:column;gap:12px;flex:1;min-width:160px;}
+.status-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+.status-dot{width:8px;height:8px;border-radius:50%;}
+footer{text-align:center;font-size:.6rem;color:var(--muted);letter-spacing:.18em;padding-top:14px;border-top:1px solid var(--border);margin-top:20px;}
+.bl{animation:blk 1s step-start infinite;}
+.cy{color:var(--glow)}.cg{color:var(--glow2)}.ca{color:var(--warm)}.cr{color:var(--danger)}
+@media(max-width:480px){.temp-val{font-size:3rem;}.grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="brand">ORBIS<small>SMART CITY DASHBOARD</small></div></div>
+  <div style="text-align:right">
+    <div id="clk">--:--:--</div>
+    <div style="font-size:.65rem;color:var(--muted);margin-top:3px">Chittagong, BD</div>
+  </div>
+</header>
+
+<div class="alert-bar" id="alertBar">⚠ ALERT — DANGEROUS CONDITIONS DETECTED</div>
+<div class="offline-bar" id="offlineBar">ESP32 OFFLINE — Showing last known data</div>
+
+<div class="sbar">
+  <div class="dot" id="liveDot"></div>
+  <span id="liveLabel">CONNECTING...</span>
+  <span style="margin-left:auto;font-size:.6rem">Last sync: <span id="lastSync">—</span></span>
+</div>
+
+<!-- WEATHER HERO -->
+<div class="sec-title">WEATHER STATION</div>
+<div class="hero">
+  <div class="hero-main">
+    <div class="scan-line"></div>
+    <div style="font-size:1.2rem;margin-bottom:5px" id="condition">—</div>
+    <div><span class="temp-val" id="temp">--</span><span style="font-size:1.4rem;color:var(--muted);vertical-align:super">°C</span></div>
+    <div style="font-size:.62rem;letter-spacing:.28em;color:var(--muted);margin-top:7px">AMBIENT TEMPERATURE</div>
+    <div style="display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid var(--glow);border-radius:2px;font-size:.7rem;color:var(--glow)" id="comfort">—</div>
+  </div>
+  <div class="side-cards">
+    <div class="card">
+      <div class="c-label">Humidity</div>
+      <div><span class="c-value cy" id="humidity">--</span><span class="c-unit">%</span></div>
+      <div class="c-bar"><div class="c-bar-fill" id="humBar" style="background:var(--glow);width:0%"></div></div>
+      <div class="c-sub" id="humSub">—</div>
+    </div>
+    <div class="card">
+      <div class="c-label">Heat Index</div>
+      <div><span class="c-value ca" id="heatIndex">--</span><span class="c-unit">°C</span></div>
+      <div class="c-sub" id="heatSub">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card"><div class="c-label">Dew Point</div><div><span class="c-value cg" id="dewPoint">--</span><span class="c-unit">°C</span></div></div>
+  <div class="card"><div class="c-label">Abs Humidity</div><div><span class="c-value cy" id="absHumidity">--</span><span class="c-unit">g/m³</span></div></div>
+  <div class="card"><div class="c-label">Vapor Pressure</div><div><span class="c-value ca" id="vaporPressure">--</span><span class="c-unit">hPa</span></div></div>
+  <div class="card"><div class="c-label">Light Level</div><div><span class="c-value cy" id="lightLevel">--</span><span class="c-unit">%</span></div><div class="c-bar"><div class="c-bar-fill" id="lightBar" style="background:var(--warm);width:0%"></div></div><div class="c-sub" id="dayNight">—</div></div>
+</div>
+
+<!-- GAS -->
+<div class="sec-title">GAS & FIRE MONITOR</div>
+<div class="grid">
+  <div class="card"><div class="c-label">Status</div><div class="c-value" id="gasStatus">--</div><div class="c-sub" id="gasSub">—</div></div>
+  <div class="card"><div class="c-label">Smoke MQ2</div><div><span class="c-value ca" id="mq2">--</span></div><div class="c-bar"><div class="c-bar-fill" id="mq2Bar" style="background:var(--warm);width:0%"></div></div></div>
+  <div class="card"><div class="c-label">Toxin MQ135</div><div><span class="c-value" style="color:#b06fff" id="mq135">--</span></div><div class="c-bar"><div class="c-bar-fill" id="mq135Bar" style="background:#b06fff;width:0%"></div></div></div>
+  <div class="card"><div class="c-label">Sprinkler</div><div class="c-value" id="pump">--</div></div>
+</div>
+
+<!-- DOOR -->
+<div class="sec-title">RFID DOOR LOCK</div>
+<div class="grid">
+  <div class="card"><div class="c-label">Door Status</div><div class="c-value" id="door">--</div></div>
+  <div class="card"><div class="c-label">Last Flat</div><div class="c-value cy" id="flat">--</div></div>
+  <div class="card"><div class="c-label">RFID Module</div><div class="c-value" id="rfidStatus">--</div></div>
+  <div class="card"><div class="c-label">Last UID</div><div style="font-family:'Space Mono';font-size:.8rem;color:var(--glow);margin-top:6px;letter-spacing:.1em" id="uid">--</div></div>
+</div>
+
+<footer>ORBIS | SMART MINI CITY | ESP32 + SUPABASE | <span class="bl">*</span> LIVE</footer>
+
+<script>
+const SUPABASE_URL = "https://kzzjtixwqprhxaanydri.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dmVwcG1zYXl6ZmR3cWV3bmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTExODAsImV4cCI6MjA5NjIyNzE4MH0.wspha3rv9a9LZZBuhgqOZ-6NgDaKKIxr2ID2WEE5Wdg";
+
+function tick(){document.getElementById('clk').textContent=new Date().toLocaleTimeString();}
+setInterval(tick,1000);tick();
+
+async function fetchLatest(){
+  try{
+    const res = await fetch(
+      SUPABASE_URL+"/rest/v1/sensor_data?select=*&order=created_at.desc&limit=1",
+      { headers:{ "apikey": SUPABASE_KEY, "Authorization": "Bearer "+SUPABASE_KEY } }
+    );
+    if(!res.ok) throw new Error();
+    const rows = await res.json();
+    if(!rows.length) return;
+    const d = rows[0];
+    const age = (Date.now() - new Date(d.created_at).getTime())/1000;
+    const online = age < 30;
+
+    document.getElementById('liveDot').className = online?'dot':'dot offline';
+    document.getElementById('liveLabel').textContent = online?'LIVE':'OFFLINE';
+    document.getElementById('lastSync').textContent = new Date(d.created_at).toLocaleTimeString();
+    document.getElementById('offlineBar').className = online?'offline-bar':'offline-bar show';
+    document.getElementById('alertBar').className = d.alert?'alert-bar show':'alert-bar';
+
+    document.getElementById('temp').textContent = d.temperature?.toFixed(1)??'--';
+    document.getElementById('humidity').textContent = d.humidity?.toFixed(1)??'--';
+    document.getElementById('heatIndex').textContent = d.heat_index?.toFixed(1)??'--';
+    document.getElementById('dewPoint').textContent = d.dew_point?.toFixed(1)??'--';
+    document.getElementById('absHumidity').textContent = d.abs_humidity?.toFixed(2)??'--';
+    document.getElementById('vaporPressure').textContent = d.vapor_pressure?.toFixed(2)??'--';
+    document.getElementById('condition').textContent = d.condition??'--';
+    document.getElementById('comfort').textContent = d.comfort??'--';
+    document.getElementById('lightLevel').textContent = d.light_level??'--';
+    document.getElementById('dayNight').textContent = d.is_day?'Daytime':'Nighttime';
+    document.getElementById('humBar').style.width = Math.min(d.humidity,100)+'%';
+    document.getElementById('lightBar').style.width = Math.min(d.light_level,100)+'%';
+    document.getElementById('humSub').textContent = d.humidity>70?'High':'Comfortable';
+    document.getElementById('heatSub').textContent = d.heat_index>d.temperature?'Feels hotter':'Matches temp';
+
+    const gc = d.gas==='DANGER'?'#ff4757':d.gas==='WARNING'?'#ff9f43':'#00ff9d';
+    document.getElementById('gasStatus').textContent = d.gas??'--';
+    document.getElementById('gasStatus').style.color = gc;
+    document.getElementById('gasSub').textContent = d.gas==='DANGER'?'Evacuate now!':d.gas==='WARNING'?'Moderate':'Air clean';
+    document.getElementById('mq2').textContent = d.mq2??'--';
+    document.getElementById('mq135').textContent = d.mq135??'--';
+    document.getElementById('mq2Bar').style.width = Math.min((d.mq2/1023)*100,100)+'%';
+    document.getElementById('mq135Bar').style.width = Math.min((d.mq135/1023)*100,100)+'%';
+    document.getElementById('pump').textContent = d.pump??'--';
+    document.getElementById('pump').style.color = d.pump==='ON'?'#ff4757':'#00ff9d';
+
+    const dc = d.door==='LOCKED'?'#00ff9d':d.door==='OPEN'?'#ff9f43':'#ff4757';
+    document.getElementById('door').textContent = d.door??'--';
+    document.getElementById('door').style.color = dc;
+    document.getElementById('flat').textContent = d.flat??'--';
+    document.getElementById('uid').textContent = d.uid??'--';
+    document.getElementById('rfidStatus').textContent = d.rfid_online?'ONLINE':'OFFLINE';
+    document.getElementById('rfidStatus').style.color = d.rfid_online?'#00ff9d':'#ff4757';
+  }catch(e){
+    document.getElementById('liveLabel').textContent='ERROR';
+  }
+}
+fetchLatest();
+setInterval(fetchLatest,5000);
+</script>
+</body>
+</html>
