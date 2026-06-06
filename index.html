@@ -1682,8 +1682,7 @@ function updateWeatherPage() {
   document.getElementById('wp-comfort-level').textContent = d.comfort;
 
   // Alert
-  const alertOn = d.heatIndex > 39 || d.alert;
-  document.getElementById('wp-alert').classList.toggle('show', alertOn);
+  
 
   drawChart();
 }
