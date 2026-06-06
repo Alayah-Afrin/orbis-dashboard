@@ -593,6 +593,10 @@ body {
 
 /* ─── SCROLLBAR THEMING ────────────────────────────────────────── */
 * { scrollbar-width:thin; scrollbar-color:rgba(0,180,255,.25) transparent; }
+  @keyframes warnSlide {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 </style>
 </head>
 <body>
@@ -781,6 +785,32 @@ body {
     <button class="fire-close" onclick="closeDial()">DISMISS</button>
   </div>
 </div>
+
+<!-- Warning Popup -->
+<div id="warn-popup" style="
+  display:none; position:fixed; bottom:24px; right:20px; z-index:8500;
+  background:rgba(20,14,0,0.95); border:1px solid #ffaa00;
+  border-radius:10px; padding:16px 18px; max-width:220px;
+  font-family:'Orbitron',monospace;
+  box-shadow:0 4px 30px rgba(255,170,0,0.2);
+  backdrop-filter:blur(10px);
+  animation: warnSlide 0.3s ease;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <span style="font-size:1.4rem;line-height:1">⚠️</span>
+    <span id="warn-title" style="font-size:.68rem;letter-spacing:.15em;color:#ffaa00;font-weight:700"></span>
+  </div>
+  <div id="warn-body" style="font-family:'Space Mono',monospace;font-size:.62rem;color:#ffd580;line-height:1.7;margin-bottom:12px"></div>
+  <div onclick="dismissWarning()" style="
+    font-size:.6rem;letter-spacing:.15em;color:#ffaa00;
+    border:1px solid rgba(255,170,0,0.35);padding:6px 12px;
+    border-radius:4px;cursor:pointer;text-align:center;
+    transition:background .2s;"
+    onmouseover="this.style.background='rgba(255,170,0,0.1)'"
+    onmouseout="this.style.background='transparent'">
+    DISMISS
+  </div>
+</div>
+  
 
 <!-- ═══════════════════════════════════════════════════════════════
      LANDING PAGE
@@ -1265,11 +1295,17 @@ async function fetchData() {
     }
 
     // Alert state
-    const alert = d.alert || d.gas === 'DANGER';
-    setAlert(alert);
-    if (alert && !lastAlert && !dialShown) { dialShown = true; showDial(); }
-    if (!alert) { lastAlert = false; dialShown = false; }
-    lastAlert = alert;
+    // Fire alert — gas DANGER only
+      const alert = d.gas === 'DANGER';
+      setAlert(alert);
+      if (alert && !lastAlert && !dialShown) { dialShown = true; showDial(); }
+      if (!alert) { lastAlert = false; dialShown = false; }
+      lastAlert = alert;
+      
+      // Heat/humidity warning popup
+      const warnHeat = d.heatIndex >= 41.0;
+      const warnHum  = d.humidity  >= 90.0;
+      showWarningPopup(warnHeat, warnHum, d);
 
     // Update card statuses
     const gc = d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
@@ -1317,6 +1353,49 @@ function showDial() {
 }
 function closeDial() { document.getElementById('fire-modal').classList.remove('active'); }
 
+function closeDial() { document.getElementById('fire-modal').classList.remove('active'); }
+
+/* ── WARNING POPUP ──────────────────────────────────────────────── */
+let warnDismissed = false;
+let lastWarnState = '';
+
+function showWarningPopup(warnHeat, warnHum, d) {
+  if (!warnHeat && !warnHum) {
+    warnDismissed = false;
+    lastWarnState = '';
+    document.getElementById('warn-popup').style.display = 'none';
+    return;
+  }
+
+  let title = '', body = '';
+  if (warnHeat && warnHum) {
+    title = 'HEAT & HUMIDITY';
+    body  = `Heat Index: <b style="color:#ffcc44">${d.heatIndex.toFixed(1)}°C</b><br>Humidity: <b style="color:#ffcc44">${d.humidity.toFixed(1)}%</b>`;
+  } else if (warnHeat) {
+    title = 'HIGH HEAT INDEX';
+    body  = `Heat Index: <b style="color:#ffcc44">${d.heatIndex.toFixed(1)}°C</b>`;
+  } else {
+    title = 'HIGH HUMIDITY';
+    body  = `Humidity: <b style="color:#ffcc44">${d.humidity.toFixed(1)}%</b>`;
+  }
+
+  if (title !== lastWarnState) {
+    warnDismissed = false;
+    lastWarnState = title;
+  }
+
+  if (warnDismissed) return;
+
+  document.getElementById('warn-title').textContent = title;
+  document.getElementById('warn-body').innerHTML = body;
+  document.getElementById('warn-popup').style.display = 'block';
+}
+
+function dismissWarning() {
+  warnDismissed = true;
+  document.getElementById('warn-popup').style.display = 'none';
+}
+  
 /* ── CARD BUILDER ───────────────────────────────────────────────── */
 function card(label, value, unit, sub, color, barPct, barColor) {
   const bar = barPct !== undefined
