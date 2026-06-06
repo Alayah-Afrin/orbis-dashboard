@@ -1338,6 +1338,7 @@ setInterval(tick, 1000);
 const pages = ['landing','systems','detail','cinematic','weather'];
 
 function showPage(name) {
+  if (!liveData) fetchData();
   if (name === 'detail-back') {
     showPage(detailCameFrom === 'cinematic' ? 'cinematic' : 'systems');
     return;
