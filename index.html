@@ -1,613 +1,1581 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ORBIS</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ORBIS — Smart City Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#000;min-height:100vh;overflow:hidden;font-family:'Orbitron',monospace;}
-#canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
-.alert-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(255,0,0,0);pointer-events:none;}
-.alert-overlay.active{display:block;animation:redflash 0.5s step-start infinite;}
-@keyframes redflash{0%,100%{background:rgba(255,30,0,0.25);}50%{background:rgba(255,30,0,0);}}
-.alert-popup{display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:#ff1e00;color:#fff;font-family:'Orbitron',monospace;font-size:13px;letter-spacing:.2em;padding:14px;text-align:center;animation:blk 1s step-start infinite;}
-.alert-popup.active{display:block;}
-@keyframes blk{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.fire-dial{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column;}
-.fire-dial.active{display:flex;}
-.dial-screen{background:#111;border:2px solid #ff1e00;border-radius:12px;padding:30px 40px;text-align:center;max-width:280px;width:90%;}
-.dial-num{font-family:'Orbitron',monospace;font-size:2.5rem;font-weight:900;color:#ff1e00;letter-spacing:.2em;margin:10px 0;}
-.dial-label{font-family:'Space Mono',monospace;font-size:.7rem;color:#ff6b6b;letter-spacing:.2em;}
-.dial-status{font-family:'Space Mono',monospace;font-size:.65rem;color:#ff9f43;margin-top:12px;animation:blk 1.5s infinite;}
-.dial-close{margin-top:20px;font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,0.3);padding:8px 20px;border-radius:3px;cursor:pointer;background:transparent;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
-#landing{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.city{position:fixed;bottom:0;left:0;right:0;height:55vh;z-index:1;pointer-events:none;}
-@keyframes riseBuilding{from{transform:translateY(100%);}to{transform:translateY(0);}}
-@keyframes moonGlow{from{opacity:0;transform:scale(0.5);}to{opacity:1;transform:scale(1);}}
-@keyframes orbisReveal{from{opacity:0;letter-spacing:.5em;}to{opacity:1;letter-spacing:.15em;}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.main-content{position:relative;z-index:5;text-align:center;pointer-events:none;margin-bottom:200px;}
-.top-line{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.4em;color:rgba(150,200,255,0.5);margin-bottom:16px;text-transform:uppercase;}
-.orbis-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(48px,14vw,80px);letter-spacing:.15em;color:#fff;line-height:1;}
-.tagline{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.3em;color:rgba(150,200,255,0.6);margin-top:8px;text-transform:uppercase;}
-.divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(100,180,255,0.5),transparent);margin:20px auto;}
-.stats{display:flex;gap:24px;justify-content:center;margin-bottom:28px;}
-.stat-num{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:rgba(100,200,255,0.9);}
-.stat-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:rgba(100,150,200,0.5);margin-top:2px;}
-.enter-wrap{position:relative;display:inline-block;pointer-events:all;cursor:pointer;}
-.pulse-ring{position:absolute;inset:-8px;border-radius:2px;border:1px solid rgba(100,180,255,0.3);animation:pr 2s ease-out infinite;pointer-events:none;}
-@keyframes pr{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(1.15);opacity:0;}}
-.enter-btn{font-family:'Orbitron',monospace;font-weight:700;font-size:12px;letter-spacing:.25em;color:#fff;border:1px solid rgba(100,180,255,0.5);padding:14px 40px;border-radius:2px;background:rgba(10,30,60,0.6);text-transform:uppercase;display:block;}
-.bottom-bar{position:fixed;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:20px;z-index:5;pointer-events:none;}
-.sys-ind{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;color:rgba(100,150,200,0.4);}
-.sdot{width:5px;height:5px;border-radius:50%;animation:blink 2s infinite;}
-#systems-page,#detail-page{display:none;position:fixed;inset:0;z-index:100;overflow-y:auto;}
-.page-bg{position:fixed;inset:0;background:#020507;z-index:-1;}
-.page-bg-city{position:fixed;bottom:0;left:0;right:0;height:35vh;z-index:-1;opacity:0.06;pointer-events:none;}
-.pg-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #0d2233;background:#020507;position:sticky;top:0;z-index:10;}
-.back-btn{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.2em;color:rgba(0,212,255,.7);cursor:pointer;border:1px solid rgba(0,212,255,.2);padding:6px 14px;border-radius:2px;}
-.pg-brand{font-family:'Orbitron',monospace;font-weight:900;font-size:.95rem;letter-spacing:.2em;color:#00d4ff;}
-.pg-time{margin-left:auto;font-family:'Space Mono',monospace;font-size:.6rem;color:#3a6680;}
-.pg-body{padding:20px;max-width:1000px;margin:auto;}
-.page-alert{display:none;background:#ff1e00;color:#fff;font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.15em;padding:10px 16px;text-align:center;animation:blk 1s step-start infinite;margin-bottom:16px;border-radius:3px;}
-.page-alert.show{display:block;}
-.sys-card{background:#070d12;border:1px solid #0d2233;border-radius:4px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color .2s,transform .1s;position:relative;overflow:hidden;}
-.sys-card:hover{border-color:#00d4ff;transform:translateY(-1px);}
-.sys-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.3),transparent);}
-.sc-header{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
-.sc-dot{width:8px;height:8px;border-radius:50%;}
-.sc-name{font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;color:#c8e8f5;letter-spacing:.1em;}
-.sc-status{font-family:'Orbitron',monospace;font-size:.65rem;margin-left:auto;}
-.sc-desc{font-family:'Space Mono',monospace;font-size:.62rem;color:#3a6680;margin-left:20px;}
-.sc-arrow{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:#3a6680;font-size:18px;}
-.sec-title{font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.25em;color:#3a6680;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #0d2233;}
-.d-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;}
-.d-card{background:#070d12;border:1px solid #0d2233;border-radius:3px;padding:12px 14px;}
-.d-label{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.2em;color:#3a6680;text-transform:uppercase;margin-bottom:6px;}
-.d-value{font-family:'Orbitron',monospace;font-weight:700;font-size:1.3rem;}
-.d-sub{font-size:.6rem;color:#3a6680;margin-top:4px;font-family:'Space Mono',monospace;}
-.d-bar-wrap{margin-top:8px;}
-.d-bar-track{height:4px;background:#0d2233;border-radius:2px;overflow:hidden;}
-.d-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
-.cinematic-link{display:block;text-align:center;font-family:'Orbitron',monospace;font-size:.65rem;letter-spacing:.2em;color:#00d4ff;border:1px solid rgba(0,212,255,.2);padding:10px;border-radius:3px;margin-top:16px;text-decoration:none;cursor:pointer;}
-.info-block{background:#070d12;border:1px solid #0d2233;border-radius:3px;padding:14px;margin-bottom:12px;}
-.loading-txt{font-family:'Space Mono',monospace;font-size:.65rem;color:#3a6680;text-align:center;padding:40px;}
-@media(max-width:480px){.orbis-logo{font-size:48px;}.d-grid{grid-template-columns:1fr 1fr;}}
+/* ─── RESET & ROOT ─────────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --c-bg:       #04091a;
+  --c-panel:    rgba(6,14,28,0.85);
+  --c-border:   rgba(0,180,255,0.12);
+  --c-border2:  rgba(0,255,160,0.15);
+  --c-glow:     #00c8ff;
+  --c-glow2:    #00ffaa;
+  --c-warn:     #ffaa00;
+  --c-danger:   #ff3a3a;
+  --c-purple:   #b06fff;
+  --c-text:     #c8e8ff;
+  --c-muted:    rgba(100,160,220,0.5);
+  --font-main:  'Orbitron', monospace;
+  --font-mono:  'Space Mono', monospace;
+  --radius:     6px;
+  --safe-top:   env(safe-area-inset-top, 0px);
+  --safe-bot:   env(safe-area-inset-bottom, 0px);
+}
+
+html { height:100%; overflow:hidden; }
+body {
+  height:100%; width:100%;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── AURORA CANVAS ────────────────────────────────────────────── */
+#aurora-canvas {
+  position:fixed; inset:0; z-index:0;
+  pointer-events:none;
+}
+
+/* ─── STAR CANVAS ──────────────────────────────────────────────── */
+#star-canvas {
+  position:fixed; inset:0; z-index:1;
+  pointer-events:none;
+}
+
+/* ─── CITY SVG ─────────────────────────────────────────────────── */
+#city-layer {
+  position:fixed; bottom:0; left:0; right:0; z-index:2;
+  pointer-events:none;
+  height: clamp(160px, 38vh, 320px);
+}
+#city-layer svg { width:100%; height:100%; }
+
+/* City building groups with staggered rise animation */
+.city-far   { animation: riseUp 2.2s cubic-bezier(.16,1,.3,1) 0.2s both; }
+.city-mid   { animation: riseUp 1.8s cubic-bezier(.16,1,.3,1) 0.5s both; }
+.city-near  { animation: riseUp 1.5s cubic-bezier(.16,1,.3,1) 0.8s both; }
+.city-fg    { animation: riseUp 1.2s cubic-bezier(.16,1,.3,1) 1.1s both; }
+
+@keyframes riseUp {
+  from { transform: translateY(110%); opacity:0; }
+  to   { transform: translateY(0);    opacity:1; }
+}
+
+/* City glow pulse */
+.city-glow-base {
+  animation: cityBreath 6s ease-in-out infinite;
+}
+@keyframes cityBreath {
+  0%,100% { opacity:0.65; }
+  50%     { opacity:0.9; }
+}
+
+/* ─── ALERT SYSTEM ─────────────────────────────────────────────── */
+#alert-flash {
+  display:none; position:fixed; inset:0; z-index:9000;
+  pointer-events:none;
+  animation: flashRed 0.6s step-start infinite;
+}
+#alert-flash.active { display:block; }
+@keyframes flashRed {
+  0%,100% { background: rgba(255,40,0,0.22); }
+  50%     { background: rgba(255,40,0,0); }
+}
+
+#alert-bar {
+  display:none; position:fixed; top:0; left:0; right:0; z-index:9100;
+  background: linear-gradient(135deg, #cc1100, #ff3a00);
+  color:#fff; font-family:var(--font-main); font-size:clamp(10px,2vw,13px);
+  letter-spacing:.2em; padding:clamp(10px,2vh,16px) 16px;
+  text-align:center; border-bottom: 1px solid rgba(255,100,0,.4);
+  box-shadow: 0 4px 30px rgba(255,60,0,.4);
+}
+#alert-bar.active { display:block; animation: alertPulse 0.8s step-start infinite; }
+@keyframes alertPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+#fire-modal {
+  display:none; position:fixed; inset:0; z-index:9200;
+  background: rgba(0,0,0,.88);
+  align-items:center; justify-content:center;
+  backdrop-filter: blur(8px);
+}
+#fire-modal.active { display:flex; }
+.fire-card {
+  background: linear-gradient(160deg, #1a0505, #0d0202);
+  border: 2px solid #ff3a00;
+  border-radius: 12px;
+  padding: clamp(24px,5vw,40px);
+  text-align:center;
+  max-width: min(300px, 85vw);
+  width:100%;
+  box-shadow: 0 0 60px rgba(255,60,0,.4);
+}
+.fire-number {
+  font-family:var(--font-main);
+  font-size: clamp(2.8rem,10vw,4rem);
+  font-weight:900;
+  color:#ff3a00;
+  letter-spacing:.1em;
+  animation: alertPulse 1.2s infinite;
+}
+.fire-label { font-size:.65rem; letter-spacing:.25em; color:#ff8866; margin:4px 0; }
+.fire-status { font-size:.62rem; color:#ffaa66; margin-top:12px; letter-spacing:.1em; animation: alertPulse 1.8s infinite; }
+.fire-close {
+  margin-top:20px; cursor:pointer;
+  font-family:var(--font-main); font-size:.65rem;
+  letter-spacing:.18em; color:rgba(255,255,255,.7);
+  border:1px solid rgba(255,255,255,.2);
+  padding:9px 22px; border-radius:4px;
+  background:transparent; transition: all .2s;
+}
+.fire-close:hover { background:rgba(255,255,255,.08); }
+
+/* ─── PAGES ────────────────────────────────────────────────────── */
+.page {
+  position:fixed; inset:0; z-index:10;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.page.hidden { opacity:0; pointer-events:none; transform:translateY(12px); }
+
+/* Scrollable body area */
+.page-scroll {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(24px + var(--safe-bot));
+}
+.page-scroll::-webkit-scrollbar { width:2px; }
+.page-scroll::-webkit-scrollbar-track { background:transparent; }
+.page-scroll::-webkit-scrollbar-thumb { background: rgba(0,180,255,.3); border-radius:2px; }
+
+/* ─── LANDING PAGE ─────────────────────────────────────────────── */
+#page-landing {
+  align-items:center; justify-content:center;
+  padding-top: var(--safe-top);
+}
+
+.landing-content {
+  position:relative; z-index:20;
+  display:flex; flex-direction:column;
+  align-items:center; text-align:center;
+  gap:0;
+  /* keep content above city */
+  margin-bottom: clamp(130px, 34vh, 290px);
+  padding: 0 20px;
+  animation: landingReveal 1s cubic-bezier(.16,1,.3,1) 0.8s both;
+}
+@keyframes landingReveal {
+  from { opacity:0; transform: translateY(-16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.orbit-badge {
+  font-family:var(--font-mono); font-size:.6rem;
+  letter-spacing:.45em; color: var(--c-muted);
+  text-transform:uppercase; margin-bottom:14px;
+}
+
+.orbis-title {
+  font-family:var(--font-main); font-weight:900;
+  font-size: clamp(52px,16vw,96px);
+  letter-spacing:.08em;
+  line-height:1;
+  background: linear-gradient(135deg, #fff 20%, #a0d8ff 55%, #00c8ff 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter: drop-shadow(0 0 30px rgba(0,180,255,.35));
+  position:relative;
+}
+
+.orbis-title::after {
+  content:'';
+  position:absolute; bottom:-6px; left:10%; right:10%;
+  height:1px;
+  background: linear-gradient(90deg, transparent, rgba(0,200,255,.6), transparent);
+}
+
+.orbis-tagline {
+  font-family:var(--font-mono); font-size:clamp(9px,2vw,11px);
+  letter-spacing:.35em; color:var(--c-muted);
+  text-transform:uppercase; margin-top:16px;
+}
+
+.stats-row {
+  display:flex; gap:clamp(20px,5vw,40px);
+  margin-top:clamp(20px,4vh,32px);
+}
+.stat-item { text-align:center; }
+.stat-val {
+  font-family:var(--font-main); font-weight:700;
+  font-size:clamp(18px,4vw,22px);
+  color: var(--c-glow);
+}
+.stat-key {
+  font-size:.58rem; letter-spacing:.2em;
+  color:var(--c-muted); margin-top:3px;
+}
+
+.sep-line {
+  width:50px; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(0,200,255,.5), transparent);
+  margin: clamp(16px,3vh,24px) 0;
+}
+
+.enter-btn {
+  position:relative; cursor:pointer;
+  font-family:var(--font-main); font-weight:700;
+  font-size:clamp(10px,2.2vw,12px);
+  letter-spacing:.25em; color:#fff;
+  border:1px solid rgba(0,200,255,.45);
+  padding:clamp(12px,2.5vh,16px) clamp(32px,6vw,48px);
+  border-radius:3px;
+  background: linear-gradient(135deg, rgba(0,40,80,.7), rgba(0,20,50,.9));
+  backdrop-filter:blur(8px);
+  transition: all .25s ease;
+  overflow:hidden;
+  user-select:none;
+}
+.enter-btn::before {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(135deg, transparent, rgba(0,200,255,.08), transparent);
+  opacity:0; transition:opacity .25s;
+}
+.enter-btn:hover::before { opacity:1; }
+.enter-btn:hover {
+  border-color: rgba(0,200,255,.8);
+  box-shadow: 0 0 20px rgba(0,180,255,.25), 0 0 40px rgba(0,180,255,.1);
+  transform: translateY(-1px);
+}
+.enter-btn:active { transform:translateY(0); }
+
+/* Pulse ring around enter button */
+.pulse-wrap { position:relative; display:inline-block; }
+.pulse-ring {
+  position:absolute; inset:-10px;
+  border-radius:5px;
+  border:1px solid rgba(0,200,255,.25);
+  animation:pulseRing 2.5s ease-out infinite;
+  pointer-events:none;
+}
+.pulse-ring:nth-child(2) { inset:-18px; animation-delay:.8s; opacity:.5; }
+@keyframes pulseRing {
+  0%   { transform:scale(1); opacity:.5; }
+  100% { transform:scale(1.18); opacity:0; }
+}
+
+/* Bottom indicators */
+.indicators {
+  position:fixed; bottom:clamp(16px,3vh,28px); left:0; right:0;
+  display:flex; justify-content:center; gap:clamp(14px,3vw,24px);
+  z-index:20;
+  padding-bottom: var(--safe-bot);
+}
+.ind-dot {
+  display:flex; align-items:center; gap:6px;
+  font-size:.6rem; letter-spacing:.18em;
+  color:var(--c-muted); text-transform:uppercase;
+}
+.ind-pip {
+  width:5px; height:5px; border-radius:50%;
+  animation: pipBlink 2s ease-in-out infinite;
+}
+@keyframes pipBlink { 0%,100%{opacity:.9;} 50%{opacity:.2;} }
+
+/* ─── PAGE HEADER ──────────────────────────────────────────────── */
+.pg-header {
+  display:flex; align-items:center; gap:12px;
+  padding: clamp(10px,2vh,14px) clamp(14px,3vw,20px);
+  padding-top: calc(clamp(10px,2vh,14px) + var(--safe-top));
+  border-bottom:1px solid var(--c-border);
+  background: rgba(3,6,16,.85);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  position:sticky; top:0; z-index:30;
+  flex-shrink:0;
+}
+.pg-logo {
+  font-family:var(--font-main); font-weight:900;
+  font-size:clamp(.8rem,3vw,.95rem);
+  letter-spacing:.2em; color:var(--c-glow);
+}
+.pg-clock {
+  margin-left:auto;
+  font-size:.6rem; letter-spacing:.15em;
+  color:var(--c-muted);
+}
+.back-btn {
+  font-family:var(--font-main); font-size:.62rem;
+  letter-spacing:.18em; color:var(--c-glow);
+  border:1px solid rgba(0,200,255,.25);
+  padding:6px 14px; border-radius:3px;
+  cursor:pointer; transition:all .2s;
+  background:transparent;
+  white-space:nowrap;
+}
+.back-btn:hover { border-color:var(--c-glow); background:rgba(0,200,255,.07); }
+
+/* ─── SYSTEMS PAGE ─────────────────────────────────────────────── */
+.pg-body { padding: clamp(14px,3vw,20px); max-width:700px; margin:0 auto; }
+
+.section-label {
+  font-size:.58rem; letter-spacing:.3em;
+  color:var(--c-muted); text-transform:uppercase;
+  margin-bottom:14px; padding-bottom:8px;
+  border-bottom:1px solid var(--c-border);
+}
+
+.page-alert-bar {
+  display:none; border-radius:4px;
+  background: linear-gradient(135deg, rgba(200,20,0,.9), rgba(255,60,0,.8));
+  color:#fff; font-family:var(--font-main);
+  font-size:.65rem; letter-spacing:.15em;
+  padding:10px 16px; text-align:center;
+  margin-bottom:16px;
+  animation: alertPulse .8s step-start infinite;
+  border:1px solid rgba(255,80,0,.5);
+}
+.page-alert-bar.show { display:block; }
+
+/* System cards */
+.sys-card {
+  background: var(--c-panel);
+  border:1px solid var(--c-border);
+  border-radius:var(--radius);
+  padding:clamp(14px,3vw,20px);
+  margin-bottom:10px;
+  cursor:pointer;
+  transition: border-color .2s, transform .15s, box-shadow .2s;
+  position:relative;
+  overflow:hidden;
+  backdrop-filter:blur(8px);
+}
+.sys-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--card-accent,rgba(0,200,255,.4)), transparent);
+}
+.sys-card::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(0,200,255,.03), transparent);
+  opacity:0; transition:opacity .2s;
+}
+.sys-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.4); }
+.sys-card:hover::after { opacity:1; }
+.sys-card:hover { border-color: var(--card-accent, rgba(0,200,255,.4)); }
+
+.card-header {
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:6px;
+}
+.card-dot {
+  width:8px; height:8px; border-radius:50%;
+  flex-shrink:0;
+}
+.card-name {
+  font-family:var(--font-main); font-size:clamp(.78rem,2.5vw,.88rem);
+  font-weight:700; letter-spacing:.1em; color:var(--c-text);
+}
+.card-status {
+  margin-left:auto; font-family:var(--font-main);
+  font-size:.62rem; letter-spacing:.08em;
+}
+.card-desc { font-size:.6rem; color:var(--c-muted); margin-left:18px; line-height:1.5; }
+.card-arrow {
+  position:absolute; right:18px; top:50%;
+  transform:translateY(-50%);
+  color:var(--c-muted); font-size:1.4rem;
+  transition:transform .2s, color .2s;
+}
+.sys-card:hover .card-arrow { transform:translateY(-50%) translateX(3px); color:var(--c-glow); }
+
+.view-all-link {
+  display:block; text-align:center;
+  font-family:var(--font-main); font-size:.62rem;
+  letter-spacing:.2em; color:var(--c-glow);
+  border:1px solid rgba(0,200,255,.2);
+  padding:12px; border-radius:4px;
+  margin-top:16px; cursor:pointer;
+  transition:all .2s;
+  background: rgba(0,50,80,.2);
+}
+.view-all-link:hover { background:rgba(0,80,120,.3); border-color:rgba(0,200,255,.5); }
+
+/* ─── DATA CARDS GRID ──────────────────────────────────────────── */
+.d-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(130px,28vw,160px), 1fr));
+  gap:clamp(8px,2vw,12px);
+  margin-bottom:16px;
+}
+.d-card {
+  background: var(--c-panel);
+  border:1px solid var(--c-border);
+  border-radius:var(--radius);
+  padding:clamp(10px,2.5vw,14px) clamp(12px,3vw,16px);
+  backdrop-filter:blur(6px);
+  transition:border-color .2s;
+}
+.d-card:hover { border-color:rgba(0,200,255,.25); }
+.d-lbl {
+  font-size:.56rem; letter-spacing:.22em;
+  color:var(--c-muted); text-transform:uppercase;
+  margin-bottom:6px;
+}
+.d-val {
+  font-family:var(--font-main); font-weight:700;
+  font-size:clamp(1.1rem,4vw,1.4rem);
+  line-height:1.1;
+}
+.d-unit { font-size:.65rem; color:var(--c-muted); margin-left:3px; }
+.d-sub  { font-size:.58rem; color:var(--c-muted); margin-top:4px; }
+.d-bar  { height:3px; background:rgba(255,255,255,.06); border-radius:2px; margin-top:7px; overflow:hidden; }
+.d-bar-fill { height:100%; border-radius:2px; transition:width 1.2s cubic-bezier(.16,1,.3,1); }
+
+.info-block {
+  background:var(--c-panel); border:1px solid var(--c-border);
+  border-radius:var(--radius); padding:clamp(12px,3vw,16px);
+  margin-bottom:12px; backdrop-filter:blur(6px);
+}
+
+/* ─── DETAIL HEADER ────────────────────────────────────────────── */
+.detail-live-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--c-glow2);
+  box-shadow:0 0 8px var(--c-glow2);
+  animation: pipBlink 2s infinite;
+  flex-shrink:0;
+}
+
+/* ─── HERO WEATHER BLOCK ───────────────────────────────────────── */
+.weather-hero {
+  display:flex; gap:12px; margin-bottom:14px;
+}
+.hero-main {
+  flex:1; min-width:0;
+  background:var(--c-panel);
+  border:1px solid var(--c-border);
+  border-top:2px solid var(--c-glow);
+  border-radius:var(--radius);
+  padding:clamp(16px,4vw,22px);
+  position:relative; overflow:hidden;
+}
+.hero-main::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--c-glow),transparent);
+  animation:scanLine 3s linear infinite;
+}
+@keyframes scanLine { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+.hero-temp {
+  font-family:var(--font-main); font-weight:900;
+  font-size:clamp(2.8rem,11vw,4.5rem);
+  color:var(--c-warn); line-height:1;
+}
+.hero-unit { font-size:1.4rem; color:var(--c-muted); vertical-align:super; }
+.hero-lbl { font-size:.6rem; letter-spacing:.28em; color:var(--c-muted); margin-top:6px; }
+.hero-badge {
+  display:inline-block; margin-top:10px;
+  padding:3px 10px; border:1px solid var(--c-glow);
+  border-radius:2px; font-size:.65rem;
+  color:var(--c-glow); letter-spacing:.1em;
+}
+
+.hero-side {
+  display:flex; flex-direction:column; gap:10px;
+  flex:0 0 clamp(130px,35vw,170px);
+}
+.side-card {
+  background:var(--c-panel); border:1px solid var(--c-border);
+  border-radius:var(--radius); padding:12px 14px; flex:1;
+}
+
+/* ─── COMFORT INDEX ────────────────────────────────────────────── */
+.comfort-block {
+  background:var(--c-panel); border:1px solid var(--c-border);
+  border-radius:var(--radius); padding:clamp(14px,3vw,18px);
+  margin-bottom:14px; backdrop-filter:blur(6px);
+}
+.comfort-scale {
+  height:8px; border-radius:4px;
+  background:linear-gradient(90deg,#3a88cc 0%,#00d4ff 22%,#00ff9d 42%,#ffaa00 62%,#ff6600 80%,#ff3a3a 100%);
+  position:relative; margin:10px 0 6px;
+}
+.comfort-needle {
+  position:absolute; top:-5px;
+  width:3px; height:18px;
+  background:#fff; border-radius:2px;
+  transition:left 1.2s cubic-bezier(.16,1,.3,1);
+  transform:translateX(-50%);
+  box-shadow:0 0 6px rgba(255,255,255,.6);
+}
+.comfort-labels {
+  display:flex; justify-content:space-between;
+  font-size:.55rem; color:var(--c-muted);
+}
+.comfort-level {
+  font-family:var(--font-main); font-size:.9rem; font-weight:700;
+  margin-top:10px; color:var(--c-warn);
+}
+
+/* ─── CINEMATIC / ALL SYSTEMS ──────────────────────────────────── */
+#page-cinematic .pg-body { max-width:900px; }
+
+/* ─── WEATHER CHART SECTION ────────────────────────────────────── */
+.chart-section {
+  background:var(--c-panel); border:1px solid var(--c-border);
+  border-radius:var(--radius); padding:clamp(14px,3vw,18px);
+  margin-bottom:14px; backdrop-filter:blur(6px);
+}
+.chart-title {
+  font-size:.6rem; letter-spacing:.25em; color:var(--c-muted);
+  text-transform:uppercase; margin-bottom:14px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.chart-pts { color:var(--c-glow); }
+.chart-legend { font-size:.58rem; color:var(--c-muted); margin-top:8px; display:flex; gap:16px; }
+
+/* ─── LOADING ──────────────────────────────────────────────────── */
+.loading {
+  text-align:center; padding:48px 24px;
+  font-size:.65rem; color:var(--c-muted); letter-spacing:.2em;
+}
+.loading::after { content:''; animation: dotDot 1.5s infinite; }
+@keyframes dotDot {
+  0%{content:'.'} 33%{content:'..'} 66%{content:'...'} 100%{content:''}
+}
+
+/* ─── FOOTER ───────────────────────────────────────────────────── */
+.page-footer {
+  text-align:center; font-size:.58rem; color:var(--c-muted);
+  letter-spacing:.18em; padding-top:14px;
+  border-top:1px solid var(--c-border);
+  margin-top:8px;
+}
+.blink { animation: alertPulse 1.2s step-start infinite; }
+
+/* ─── RESPONSIVE TWEAKS ────────────────────────────────────────── */
+/* Landscape phone */
+@media (max-height: 500px) and (orientation:landscape) {
+  .landing-content { margin-bottom:clamp(80px,22vh,120px); gap:0; }
+  .orbis-title { font-size:clamp(36px,10vh,56px); }
+  .stats-row { margin-top:10px; }
+  .sep-line { margin:12px 0; }
+  #city-layer { height:clamp(80px,28vh,150px); }
+}
+
+/* Tablet portrait */
+@media (min-width:600px) {
+  .d-grid { grid-template-columns: repeat(3, 1fr); }
+  .weather-hero { flex-direction:row; }
+}
+
+/* Tablet landscape / small desktop */
+@media (min-width:900px) {
+  .d-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Desktop */
+@media (min-width:1200px) {
+  .d-grid { grid-template-columns: repeat(5, 1fr); }
+  .pg-body { padding:28px 24px; }
+}
+
+/* ─── SCROLLBAR THEMING ────────────────────────────────────────── */
+* { scrollbar-width:thin; scrollbar-color:rgba(0,180,255,.25) transparent; }
 </style>
 </head>
 <body>
 
-<div class="alert-overlay" id="alertOverlay"></div>
-<div class="alert-popup" id="alertPopup">FIRE ALERT - DANGEROUS GAS DETECTED - EVACUATING</div>
-<div class="fire-dial" id="fireDial">
-  <div class="dial-screen">
-    <div class="dial-label">EMERGENCY SERVICES</div>
-    <div class="dial-num">999</div>
-    <div class="dial-label">FIRE BRIGADE</div>
-    <div class="dial-status" id="dialStatus">Dialing...</div>
-    <div class="dial-close" onclick="closeDial()">DISMISS</div>
+<!-- Aurora & Stars -->
+<canvas id="aurora-canvas"></canvas>
+<canvas id="star-canvas"></canvas>
+
+<!-- City Skyline -->
+<div id="city-layer">
+  <svg viewBox="0 0 1440 280" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a1835" stop-opacity="0.7"/>
+        <stop offset="100%" stop-color="#060e22" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="glow-city" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a3a8a" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#030610" stop-opacity="1"/>
+      </linearGradient>
+      <filter id="city-blur">
+        <feGaussianBlur stdDeviation="0.5"/>
+      </filter>
+    </defs>
+
+    <!-- Reflection glow at base -->
+    <rect x="0" y="240" width="1440" height="40" fill="url(#glow-city)"/>
+
+    <!-- FAR background buildings — dim, blue tinted -->
+    <g class="city-far" fill="#0d1f4a" opacity="0.6">
+      <rect x="0"    y="200" width="50"  height="200"/>
+      <rect x="40"   y="170" width="35"  height="230"/>
+      <rect x="70"   y="185" width="45"  height="215"/>
+      <rect x="108"  y="145" width="30"  height="255"/>
+      <rect x="132"  y="165" width="40"  height="235"/>
+      <rect x="165"  y="120" width="48"  height="280"/>
+      <rect x="206"  y="138" width="35"  height="262"/>
+      <rect x="236"  y="150" width="28"  height="250"/>
+      <rect x="258"  y="160" width="42"  height="240"/>
+      <rect x="294"  y="175" width="35"  height="225"/>
+      <!-- antenna -->
+      <rect x="185"  y="102" width="4"   height="18"/>
+      <!-- right side -->
+      <rect x="1100" y="160" width="42"  height="240"/>
+      <rect x="1135" y="140" width="30"  height="260"/>
+      <rect x="1160" y="150" width="45"  height="250"/>
+      <rect x="1198" y="120" width="48"  height="280"/>
+      <rect x="1240" y="138" width="35"  height="262"/>
+      <rect x="1268" y="155" width="40"  height="245"/>
+      <rect x="1302" y="140" width="28"  height="260"/>
+      <rect x="1325" y="165" width="42"  height="235"/>
+      <rect x="1360" y="175" width="35"  height="225"/>
+      <rect x="1390" y="180" width="50"  height="220"/>
+      <rect x="1430" y="200" width="50"  height="200"/>
+      <!-- antenna right -->
+      <rect x="1215" y="102" width="4"   height="18"/>
+    </g>
+
+    <!-- MID buildings — main city layer -->
+    <g class="city-mid" fill="#0b183a" opacity="0.85">
+      <rect x="0"    y="230" width="80"  height="200"/>
+      <rect x="70"   y="210" width="60"  height="220"/>
+      <rect x="122"  y="190" width="75"  height="240"/>
+      <rect x="188"  y="170" width="55"  height="260"/>
+      <rect x="236"  y="150" width="85"  height="280"/>
+      <rect x="312"  y="178" width="62"  height="252"/>
+      <rect x="366"  y="158" width="72"  height="272"/>
+      <rect x="430"  y="185" width="55"  height="245"/>
+      <rect x="478"  y="140" width="90"  height="290"/>
+      <!-- tall center spire -->
+      <rect x="562"  y="80"  width="62"  height="350"/>
+      <rect x="617"  y="100" width="40"  height="330"/>
+      <!-- spire antenna -->
+      <rect x="590"  y="50"  width="5"   height="30"/>
+      <rect x="635"  y="70"  width="3"   height="30"/>
+
+      <rect x="660"  y="100" width="62"  height="330"/>
+      <rect x="715"  y="80"  width="62"  height="350"/>
+      <rect x="770"  y="140" width="90"  height="290"/>
+      <rect x="853"  y="185" width="55"  height="245"/>
+      <rect x="901"  y="158" width="72"  height="272"/>
+      <rect x="966"  y="178" width="62"  height="252"/>
+      <rect x="1020" y="150" width="85"  height="280"/>
+      <rect x="1098" y="170" width="55"  height="260"/>
+      <rect x="1146" y="190" width="75"  height="240"/>
+      <rect x="1214" y="210" width="60"  height="220"/>
+      <rect x="1268" y="230" width="80"  height="200"/>
+      <rect x="1340" y="215" width="60"  height="215"/>
+      <rect x="1390" y="230" width="50"  height="200"/>
+    </g>
+
+    <!-- NEAR foreground buildings — darkest, detailed -->
+    <g class="city-near" fill="#060d20">
+      <rect x="0"    y="248" width="110" height="200"/>
+      <rect x="100"  y="228" width="90"  height="220"/>
+      <rect x="180"  y="210" width="105" height="238"/>
+      <rect x="275"  y="195" width="85"  height="253"/>
+      <rect x="350"  y="178" width="120" height="270"/>
+      <rect x="460"  y="206" width="95"  height="242"/>
+      <rect x="545"  y="188" width="80"  height="260"/>
+      <rect x="615"  y="215" width="55"  height="233"/>
+      <rect x="660"  y="215" width="55"  height="233"/>
+      <rect x="705"  y="188" width="80"  height="260"/>
+      <rect x="775"  y="206" width="95"  height="242"/>
+      <rect x="860"  y="178" width="120" height="270"/>
+      <rect x="970"  y="195" width="85"  height="253"/>
+      <rect x="1045" y="210" width="105" height="238"/>
+      <rect x="1140" y="228" width="90"  height="220"/>
+      <rect x="1220" y="248" width="110" height="200"/>
+      <rect x="1320" y="235" width="80"  height="213"/>
+      <rect x="1390" y="248" width="50"  height="200"/>
+    </g>
+
+    <!-- FOREGROUND closest buildings — pure black silhouette -->
+    <g class="city-fg" fill="#030610">
+      <rect x="0"    y="262" width="130" height="200"/>
+      <rect x="118"  y="248" width="100" height="214"/>
+      <rect x="205"  y="235" width="115" height="227"/>
+      <rect x="305"  y="222" width="95"  height="240"/>
+      <rect x="385"  y="208" width="125" height="254"/>
+      <rect x="495"  y="238" width="100" height="224"/>
+      <rect x="580"  y="220" width="90"  height="242"/>
+      <rect x="655"  y="240" width="55"  height="222"/>
+      <rect x="700"  y="240" width="55"  height="222"/>
+      <rect x="740"  y="220" width="90"  height="242"/>
+      <rect x="815"  y="238" width="100" height="224"/>
+      <rect x="900"  y="208" width="125" height="254"/>
+      <rect x="1010" y="222" width="95"  height="240"/>
+      <rect x="1090" y="235" width="115" height="227"/>
+      <rect x="1192" y="248" width="100" height="214"/>
+      <rect x="1278" y="262" width="162" height="200"/>
+    </g>
+
+    <!-- Window lights — warm yellows scattered realistically -->
+    <g fill="rgba(255,220,80,0.7)" class="city-glow-base">
+      <!-- far layer lights -->
+      <rect x="178" y="130" width="4" height="3"/><rect x="186" y="140" width="4" height="3"/>
+      <rect x="215" y="148" width="4" height="3"/><rect x="225" y="160" width="4" height="3"/>
+      <rect x="250" y="165" width="4" height="3"/><rect x="260" y="178" width="4" height="3"/>
+      <!-- mid layer lights -->
+      <rect x="320" y="188" width="5" height="4"/><rect x="334" y="200" width="5" height="4"/>
+      <rect x="380" y="168" width="5" height="4"/><rect x="395" y="182" width="5" height="4"/>
+      <rect x="490" y="150" width="5" height="4"/><rect x="505" y="165" width="5" height="4"/>
+      <rect x="520" y="152" width="5" height="4"/>
+      <rect x="580" y="93"  width="5" height="4"/><rect x="592" y="108" width="5" height="4"/>
+      <rect x="606" y="120" width="5" height="4"/><rect x="594" y="134" width="5" height="4"/>
+      <rect x="634" y="115" width="5" height="4"/><rect x="648" y="128" width="5" height="4"/>
+      <rect x="726" y="93"  width="5" height="4"/><rect x="738" y="108" width="5" height="4"/>
+      <rect x="752" y="120" width="5" height="4"/>
+      <!-- right side -->
+      <rect x="870" y="188" width="5" height="4"/><rect x="885" y="200" width="5" height="4"/>
+      <rect x="920" y="168" width="5" height="4"/><rect x="935" y="182" width="5" height="4"/>
+      <rect x="975" y="150" width="5" height="4"/><rect x="990" y="165" width="5" height="4"/>
+      <rect x="1100" y="188" width="5" height="4"/><rect x="1116" y="200" width="5" height="4"/>
+      <rect x="1155" y="168" width="5" height="4"/><rect x="1170" y="182" width="5" height="4"/>
+      <rect x="1210" y="148" width="4" height="3"/><rect x="1220" y="160" width="4" height="3"/>
+    </g>
+
+    <!-- Cyan/blue accent lights on windows -->
+    <g fill="rgba(0,200,255,0.5)" class="city-glow-base">
+      <rect x="178" y="155" width="3" height="3"/>
+      <rect x="330" y="195" width="3" height="3"/>
+      <rect x="500" y="158" width="3" height="3"/>
+      <rect x="600" y="100" width="3" height="3"/>
+      <rect x="730" y="100" width="3" height="3"/>
+      <rect x="890" y="195" width="3" height="3"/>
+      <rect x="1010" y="158" width="3" height="3"/>
+      <rect x="1170" y="155" width="3" height="3"/>
+    </g>
+
+    <!-- Ground glow reflection -->
+    <ellipse cx="720" cy="280" rx="680" ry="12" fill="rgba(20,80,180,0.15)"/>
+    <ellipse cx="720" cy="280" rx="350" ry="6" fill="rgba(0,150,255,0.1)"/>
+  </svg>
+</div>
+
+<!-- Alert overlays -->
+<div id="alert-flash"></div>
+<div id="alert-bar">🔥 FIRE ALERT — DANGEROUS GAS DETECTED — EVACUATING NOW</div>
+<div id="fire-modal">
+  <div class="fire-card">
+    <div class="fire-label">EMERGENCY SERVICES</div>
+    <div class="fire-number">999</div>
+    <div class="fire-label">FIRE BRIGADE</div>
+    <div class="fire-status" id="dial-status">Dialing...</div>
+    <button class="fire-close" onclick="closeDial()">DISMISS</button>
   </div>
 </div>
 
-<canvas id="canvas"></canvas>
-
-<!-- LANDING PAGE -->
-<div id="landing">
-  <svg class="city" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="600" cy="160" r="110" fill="#1a2a5e" opacity="0.6" style="animation:moonGlow 2s ease forwards"/>
-    <circle cx="600" cy="160" r="85" fill="#2a3a7e" opacity="0.4"/>
-    <g fill="#1a2550" style="animation:riseBuilding 1.2s ease forwards">
-      <rect x="0" y="350" width="70" height="450"/><rect x="55" y="300" width="50" height="500"/>
-      <rect x="95" y="320" width="60" height="480"/><rect x="145" y="270" width="45" height="530"/>
-      <rect x="180" y="300" width="55" height="500"/><rect x="225" y="240" width="65" height="560"/>
-      <rect x="280" y="280" width="50" height="520"/><rect x="320" y="255" width="40" height="545"/>
-      <rect x="350" y="270" width="60" height="530"/><rect x="400" y="300" width="45" height="500"/>
-      <rect x="760" y="300" width="60" height="500"/><rect x="810" y="270" width="45" height="530"/>
-      <rect x="845" y="255" width="55" height="545"/><rect x="890" y="240" width="65" height="560"/>
-      <rect x="945" y="280" width="50" height="520"/><rect x="985" y="300" width="55" height="500"/>
-      <rect x="1030" y="270" width="45" height="530"/><rect x="1065" y="240" width="60" height="560"/>
-      <rect x="1115" y="260" width="50" height="540"/><rect x="1155" y="300" width="45" height="500"/>
-    </g>
-    <g fill="#111830" style="animation:riseBuilding 1s ease .3s both">
-      <rect x="0" y="390" width="90" height="410"/><rect x="80" y="355" width="70" height="445"/>
-      <rect x="140" y="330" width="80" height="470"/><rect x="210" y="310" width="60" height="490"/>
-      <rect x="260" y="285" width="95" height="515"/><rect x="345" y="330" width="75" height="470"/>
-      <rect x="410" y="310" width="85" height="490"/><rect x="485" y="340" width="65" height="460"/>
-      <rect x="540" y="295" width="105" height="505"/><rect x="635" y="330" width="75" height="470"/>
-      <rect x="700" y="330" width="75" height="470"/><rect x="765" y="295" width="105" height="505"/>
-      <rect x="860" y="340" width="65" height="460"/><rect x="915" y="310" width="85" height="490"/>
-      <rect x="990" y="330" width="75" height="470"/><rect x="1055" y="285" width="95" height="515"/>
-      <rect x="1140" y="310" width="60" height="490"/><rect x="1190" y="330" width="80" height="470"/>
-    </g>
-    <g fill="#080d18" style="animation:riseBuilding .8s ease .6s both">
-      <rect x="0" y="430" width="110" height="370"/><rect x="100" y="405" width="90" height="395"/>
-      <rect x="180" y="380" width="110" height="420"/><rect x="280" y="360" width="90" height="440"/>
-      <rect x="360" y="340" width="130" height="460"/><rect x="480" y="375" width="100" height="425"/>
-      <rect x="570" y="355" width="90" height="445"/><rect x="650" y="385" width="50" height="415"/>
-      <rect x="700" y="385" width="50" height="415"/>
-      <rect x="750" y="355" width="90" height="445"/><rect x="830" y="375" width="100" height="425"/>
-      <rect x="920" y="340" width="130" height="460"/><rect x="1040" y="360" width="90" height="440"/>
-      <rect x="1120" y="380" width="110" height="420"/><rect x="1220" y="405" width="90" height="395"/>
-    </g>
-    <g fill="rgba(255,220,100,0.55)">
-      <rect x="115" y="418" width="4" height="4"/><rect x="125" y="430" width="4" height="4"/>
-      <rect x="200" y="395" width="4" height="4"/><rect x="212" y="408" width="4" height="4"/>
-      <rect x="378" y="355" width="4" height="4"/><rect x="390" y="368" width="4" height="4"/>
-      <rect x="498" y="388" width="4" height="4"/><rect x="510" y="400" width="4" height="4"/>
-      <rect x="588" y="368" width="4" height="4"/><rect x="600" y="380" width="4" height="4"/>
-      <rect x="762" y="368" width="4" height="4"/><rect x="774" y="380" width="4" height="4"/>
-      <rect x="845" y="388" width="4" height="4"/><rect x="858" y="400" width="4" height="4"/>
-      <rect x="935" y="355" width="4" height="4"/><rect x="948" y="368" width="4" height="4"/>
-      <rect x="1138" y="395" width="4" height="4"/><rect x="1150" y="408" width="4" height="4"/>
-    </g>
-  </svg>
-
-  <div class="main-content" id="mainContent" style="opacity:0">
-    <div class="top-line">Smart City Intelligence</div>
-    <div class="orbis-logo">ORBIS</div>
-    <div class="tagline">Intelligent Living System</div>
-    <div class="divider"></div>
-    <div class="stats">
-      <div class="stat"><div class="stat-num">3</div><div class="stat-label">Systems</div></div>
-      <div class="stat"><div class="stat-num" id="liveCount">-</div><div class="stat-label">Online</div></div>
-      <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Monitor</div></div>
+<!-- ═══════════════════════════════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════════════════════════════════ -->
+<div id="page-landing" class="page">
+  <div class="landing-content">
+    <div class="orbit-badge">Smart City Intelligence</div>
+    <div class="orbis-title">ORBIS</div>
+    <div class="orbis-tagline">Intelligent Living System</div>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-val">3</div>
+        <div class="stat-key">Systems</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="live-count">—</div>
+        <div class="stat-key">Online</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">24/7</div>
+        <div class="stat-key">Monitor</div>
+      </div>
     </div>
-    <div class="enter-wrap" onclick="enterSystems()">
+    <div class="sep-line"></div>
+    <div class="pulse-wrap">
       <div class="pulse-ring"></div>
-      <div class="enter-btn">ENTER ORBIS</div>
+      <div class="pulse-ring" style="animation-delay:.8s"></div>
+      <button class="enter-btn" onclick="showPage('systems')">ENTER ORBIS</button>
     </div>
   </div>
 
-  <div class="bottom-bar">
-    <div class="sys-ind"><div class="sdot" style="background:rgba(0,200,255,0.8)"></div>WEATHER</div>
-    <div class="sys-ind"><div class="sdot" style="background:rgba(0,255,150,0.8)"></div>GAS</div>
-    <div class="sys-ind"><div class="sdot" style="background:rgba(180,100,255,0.8)"></div>RFID</div>
-  </div>
-</div>
-
-<!-- SYSTEMS PAGE -->
-<div id="systems-page">
-  <div class="page-bg"></div>
-  <svg class="page-bg-city" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet">
-    <g fill="#1a2550"><rect x="0" y="200" width="60" height="200"/><rect x="50" y="160" width="40" height="240"/><rect x="80" y="180" width="50" height="220"/><rect x="120" y="140" width="35" height="260"/><rect x="145" y="170" width="45" height="230"/><rect x="180" y="120" width="55" height="280"/><rect x="225" y="150" width="40" height="250"/><rect x="840" y="140" width="50" height="260"/><rect x="880" y="120" width="35" height="280"/><rect x="940" y="130" width="55" height="270"/><rect x="985" y="110" width="40" height="290"/><rect x="1130" y="120" width="70" height="280"/></g>
-    <g fill="#080d18"><rect x="0" y="260" width="100" height="140"/><rect x="90" y="240" width="80" height="160"/><rect x="160" y="220" width="100" height="180"/><rect x="250" y="200" width="80" height="200"/><rect x="320" y="180" width="120" height="220"/><rect x="430" y="210" width="90" height="190"/><rect x="510" y="190" width="80" height="210"/><rect x="640" y="190" width="80" height="210"/><rect x="710" y="210" width="90" height="190"/><rect x="790" y="180" width="120" height="220"/><rect x="900" y="200" width="80" height="200"/><rect x="970" y="220" width="100" height="180"/><rect x="1060" y="240" width="80" height="160"/><rect x="1130" y="260" width="70" height="140"/></g>
-  </svg>
-  <div class="pg-header">
-    <div class="back-btn" onclick="goBack('landing')">BACK</div>
-    <div class="pg-brand">ORBIS</div>
-    <div class="pg-time" id="sys-time"></div>
-  </div>
-  <div class="pg-body">
-    <div class="page-alert" id="sysAlert">FIRE ALERT - DANGEROUS CONDITIONS</div>
-    <div style="font-family:Space Mono,monospace;font-size:.6rem;letter-spacing:.25em;color:#3a6680;margin-bottom:16px;text-transform:uppercase">SELECT SYSTEM</div>
-    <div class="sys-card" onclick="openDetail('weather')"><div class="sc-header"><div class="sc-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div><div class="sc-name">WEATHER STATION</div><div class="sc-status" style="color:#00ff9d">LIVE</div></div><div class="sc-desc">Temperature, humidity, heat index, dew point, air quality</div><div class="sc-arrow">›</div></div>
-    <div class="sys-card" onclick="openDetail('gas')"><div class="sc-header"><div class="sc-dot" style="background:#00ff9d;box-shadow:0 0 6px #00ff9d"></div><div class="sc-name">GAS & FIRE MONITOR</div><div class="sc-status" id="gasCardStatus" style="color:#00ff9d">LIVE</div></div><div class="sc-desc">MQ2 smoke, MQ135 toxin, auto sprinkler pump</div><div class="sc-arrow">›</div></div>
-    <div class="sys-card" onclick="openDetail('door')"><div class="sc-header"><div class="sc-dot" style="background:#b06fff;box-shadow:0 0 6px #b06fff"></div><div class="sc-name">RFID DOOR LOCK</div><div class="sc-status" id="rfidCardStatus" style="color:#00ff9d">LIVE</div></div><div class="sc-desc">Door status, last card UID, flat access log</div><div class="sc-arrow">›</div></div>
-    <div class="cinematic-link" onclick="openCinematic()">VIEW FULL CINEMATIC DASHBOARD →</div>
-  </div>
-</div>
-
-<!-- DETAIL PAGE -->
-<div id="detail-page">
-  <div class="page-bg"></div>
-  <svg class="page-bg-city" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet">
-    <g fill="#1a2550"><rect x="0" y="200" width="60" height="200"/><rect x="50" y="160" width="40" height="240"/><rect x="180" y="120" width="55" height="280"/><rect x="940" y="130" width="55" height="270"/><rect x="1130" y="120" width="70" height="280"/></g>
-    <g fill="#080d18"><rect x="0" y="260" width="100" height="140"/><rect x="160" y="220" width="100" height="180"/><rect x="320" y="180" width="120" height="220"/><rect x="790" y="180" width="120" height="220"/><rect x="1060" y="240" width="80" height="160"/><rect x="1130" y="260" width="70" height="140"/></g>
-  </svg>
-  <div class="pg-header">
-    <div class="back-btn" onclick="goBack('systems')">BACK</div>
-    <div class="pg-brand" id="detail-title">--</div>
-    <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:#00ff9d;box-shadow:0 0 6px #00ff9d;animation:blink 2s infinite"></div>
-  </div>
-  <div class="pg-body">
-    <div class="page-alert" id="detailAlert">FIRE ALERT - DANGEROUS CONDITIONS</div>
-    <div id="detail-body"><div class="loading-txt">Loading...</div></div>
-  </div>
-</div>
-
-<!-- CINEMATIC ALL-SYSTEMS PAGE -->
-<div id="weather-embed-page" style="display:none;position:fixed;inset:0;z-index:200;background:#020507;overflow-y:auto;">
-  <div style="padding:10px 16px;border-bottom:1px solid #0d2233;background:#020507;position:sticky;top:0;display:flex;align-items:center;gap:12px;z-index:10;">
-    <div class="back-btn" onclick="closeCinematic()">BACK</div>
-    <div style="font-family:Orbitron,monospace;font-weight:900;font-size:.95rem;color:#00d4ff;letter-spacing:.2em;">ORBIS — ALL SYSTEMS</div>
-    <div style="margin-left:auto;font-family:Space Mono,monospace;font-size:.6rem;color:#3a6680;" id="cin-time"></div>
-  </div>
-  <div style="padding:20px;max-width:1000px;margin:auto;" id="cin-body"></div>
-</div>
-
-<!-- CINEMATIC WEATHER PAGE -->
-<div id="weather-page" style="display:none;position:fixed;inset:0;z-index:300;background:#020507;overflow-y:auto;">
-  <div style="padding:10px 16px;border-bottom:1px solid #0d2233;background:#020507;position:sticky;top:0;display:flex;align-items:center;gap:12px;z-index:10;">
-    <div class="back-btn" onclick="closeWeatherPage()">BACK</div>
-    <div style="font-family:Orbitron,monospace;font-weight:900;font-size:.95rem;color:#00d4ff;letter-spacing:.2em;">ORBIS — WEATHER STATION</div>
-    <div style="margin-left:auto;font-family:Space Mono,monospace;font-size:.6rem;color:#3a6680;" id="wp-time"></div>
-  </div>
-  <div style="padding:20px 16px 40px;max-width:900px;margin:auto;">
-    <style>
-    :root{--bg:#020507;--panel:#070d12;--border:#0d2233;--glow:#00d4ff;--glow2:#00ff9d;--warm:#ff9f43;--text:#c8e8f5;--muted:#3a6680;--danger:#ff4757;}
-    .wp-body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;}
-    .wp-body::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.012) 2px,rgba(0,212,255,.012) 4px);}
-    .alert-bar{display:none;background:var(--danger);color:#fff;font-family:'Orbitron';font-size:.75rem;letter-spacing:.15em;padding:10px;text-align:center;border-radius:3px;margin-bottom:16px;animation:blk 1s step-start infinite;}
-    .alert-bar.show{display:block;}
-    .sbar{display:flex;align-items:center;gap:10px;font-size:.65rem;color:var(--muted);margin-bottom:20px;flex-wrap:wrap;}
-    .dot{width:7px;height:7px;border-radius:50%;background:var(--glow2);animation:pd 2s infinite;}
-    @keyframes pd{0%,100%{opacity:1}50%{opacity:.25}}
-    .hero{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
-    .hm{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--glow);border-radius:3px;padding:20px 24px;position:relative;overflow:hidden;}
-    .sl{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--glow),transparent);animation:sc2 3s linear infinite;}
-    @keyframes sc2{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-    .tv{font-family:'Orbitron';font-weight:900;font-size:4rem;line-height:1;color:var(--warm);}
-    .tu{font-size:1.5rem;color:var(--muted);vertical-align:super;}
-    .tl{font-size:.62rem;letter-spacing:.28em;color:var(--muted);margin-top:7px;}
-    .badge{display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid var(--glow);border-radius:2px;font-size:.7rem;color:var(--glow);}
-    .side{display:flex;flex-direction:column;gap:12px;flex:1;min-width:160px;}
-    .mc{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:14px 16px;}
-    .ml{font-size:.6rem;letter-spacing:.22em;color:var(--muted);margin-bottom:7px;text-transform:uppercase;}
-    .mv{font-family:'Orbitron';font-weight:700;font-size:1.5rem;}
-    .mu{font-size:.72rem;color:var(--muted);margin-left:3px;}
-    .msub{font-size:.62rem;color:var(--muted);margin-top:5px;}
-    .gt{height:3px;background:var(--border);border-radius:2px;margin-top:7px;}
-    .gf{height:100%;border-radius:2px;transition:width 1s ease;}
-    .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:20px;}
-    .cy{color:var(--glow)}.cg{color:var(--glow2)}.ca{color:var(--warm)}.cr{color:var(--danger)}
-    .csec{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:16px 18px;margin-bottom:20px;}
-    .cscale{height:9px;border-radius:2px;background:linear-gradient(90deg,#3a6680 0%,#00d4ff 25%,#00ff9d 45%,#ff9f43 65%,#ff6b35 80%,#ff4757 100%);}
-    .cbw{position:relative;}
-    .cn{position:absolute;top:-4px;width:3px;height:17px;background:#fff;border-radius:2px;transition:left 1s ease;transform:translateX(-50%);}
-    .clabels{display:flex;justify-content:space-between;margin-top:7px;font-size:.58rem;color:var(--muted);}
-    .clevel{font-family:'Orbitron';font-size:.95rem;font-weight:700;margin-top:10px;}
-    .csect{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:18px 18px 14px;margin-bottom:20px;}
-    .ctit{font-size:.62rem;letter-spacing:.28em;color:var(--muted);margin-bottom:14px;display:flex;justify-content:space-between;}
-    .ctit span{color:var(--glow);}
-    .wfooter{text-align:center;font-size:.6rem;color:var(--muted);letter-spacing:.18em;padding-top:14px;border-top:1px solid var(--border);}
-    .bl{animation:blk 1s step-start infinite;}
-    </style>
-    <div class="wp-body">
-      <div class="alert-bar" id="wp-alertBar">ALERT - DANGEROUS CONDITIONS</div>
-      <div class="sbar"><div class="dot"></div><span>LIVE</span><span id="wp-dn" style="color:var(--glow2)">-</span><span style="margin-left:auto">Sync: <span id="wp-ls">-</span></span></div>
-      <div class="hero">
-        <div class="hm"><div class="sl"></div>
-          <div style="font-size:1.3rem;margin-bottom:5px" id="wp-ci">-</div>
-          <div><span class="tv" id="wp-tv">--</span><span class="tu ca">C</span></div>
-          <div class="tl">AMBIENT TEMPERATURE</div>
-          <div class="badge" id="wp-bdg">SCANNING</div>
-        </div>
-        <div class="side">
-          <div class="mc"><div class="ml">Humidity</div><div><span class="mv cy" id="wp-hv">--</span><span class="mu">%</span></div><div class="gt"><div class="gf" id="wp-hg" style="background:var(--glow);width:0%"></div></div><div class="msub" id="wp-hd">-</div></div>
-          <div class="mc"><div class="ml">Heat Index</div><div><span class="mv ca" id="wp-hiv">--</span><span class="mu">C</span></div><div class="msub" id="wp-hid">-</div></div>
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="mc"><div class="ml">Dew Point</div><div><span class="mv cg" id="wp-dw">--</span><span class="mu">C</span></div><div class="msub" id="wp-dd">-</div></div>
-        <div class="mc"><div class="ml">Abs Humidity</div><div><span class="mv cy" id="wp-ah">--</span><span class="mu">g/m3</span></div></div>
-        <div class="mc"><div class="ml">Vapor Pressure</div><div><span class="mv ca" id="wp-vp">--</span><span class="mu">hPa</span></div></div>
-        <div class="mc"><div class="ml">Light Level</div><div><span class="mv cy" id="wp-ll">--</span><span class="mu">%</span></div><div class="gt"><div class="gf" id="wp-lg" style="background:var(--warm);width:0%"></div></div></div>
-        <div class="mc"><div class="ml">Sensor</div><div><span class="mv cg" id="wp-ss">OK</span></div><div class="msub">DHT22 GPIO4</div></div>
-      </div>
-      <div class="csec">
-        <div class="ml" style="margin-bottom:10px">THERMAL COMFORT INDEX</div>
-        <div class="cbw"><div class="cscale"></div><div class="cn" id="wp-nd" style="left:0%"></div></div>
-        <div class="clabels"><span>Cool</span><span>Pleasant</span><span>Warm</span><span>Caution</span><span>Danger</span></div>
-        <div class="clevel ca" id="wp-cl">-</div>
-      </div>
-      <div class="csect">
-        <div class="ctit">TREND - 2 HR WINDOW<span id="wp-cp">0 pts</span></div>
-        <canvas id="wp-hc" height="110" style="display:block;width:100%"></canvas>
-        <div style="display:flex;gap:18px;margin-top:10px;font-size:.62rem;color:var(--muted)"><span style="color:var(--warm)">Temp C</span> / <span style="color:var(--glow)">Humidity %</span></div>
-      </div>
-      <div class="wfooter">ORBIS | WEATHER STATION | ESP32 + DHT22 | <span class="bl">*</span> ONLINE</div>
+  <div class="indicators">
+    <div class="ind-dot">
+      <div class="ind-pip" style="background:var(--c-glow)"></div>
+      WEATHER
+    </div>
+    <div class="ind-dot">
+      <div class="ind-pip" style="background:var(--c-glow2)"></div>
+      GAS
+    </div>
+    <div class="ind-dot">
+      <div class="ind-pip" style="background:var(--c-purple)"></div>
+      RFID
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     SYSTEMS PAGE
+════════════════════════════════════════════════════════════════ -->
+<div id="page-systems" class="page hidden">
+  <div class="pg-header">
+    <button class="back-btn" onclick="showPage('landing')">← BACK</button>
+    <div class="pg-logo">ORBIS</div>
+    <div class="pg-clock" id="clock-sys"></div>
+  </div>
+  <div class="page-scroll">
+    <div class="pg-body">
+      <div class="page-alert-bar" id="sys-alert">🔥 FIRE ALERT — DANGEROUS CONDITIONS</div>
+      <div class="section-label">Select System</div>
+
+      <div class="sys-card" style="--card-accent:rgba(0,200,255,.4)" onclick="showDetail('weather')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#00c8ff;box-shadow:0 0 8px #00c8ff"></div>
+          <div class="card-name">WEATHER STATION</div>
+          <div class="card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">Temperature · Humidity · Heat Index · Dew Point · Air Quality</div>
+        <div class="card-arrow">›</div>
+      </div>
+
+      <div class="sys-card" style="--card-accent:rgba(0,255,160,.35)" onclick="showDetail('gas')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#00ffaa;box-shadow:0 0 8px #00ffaa"></div>
+          <div class="card-name">GAS & FIRE MONITOR</div>
+          <div class="card-status" id="gas-card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">MQ2 Smoke · MQ135 Toxin · Auto Sprinkler Pump</div>
+        <div class="card-arrow">›</div>
+      </div>
+
+      <div class="sys-card" style="--card-accent:rgba(176,111,255,.35)" onclick="showDetail('door')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#b06fff;box-shadow:0 0 8px #b06fff"></div>
+          <div class="card-name">RFID DOOR LOCK</div>
+          <div class="card-status" id="rfid-card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">Door Status · Last Card UID · Flat Access Log</div>
+        <div class="card-arrow">›</div>
+      </div>
+
+      <div class="view-all-link" onclick="showPage('cinematic')">VIEW ALL SYSTEMS DASHBOARD →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DETAIL PAGE
+════════════════════════════════════════════════════════════════ -->
+<div id="page-detail" class="page hidden">
+  <div class="pg-header">
+    <button class="back-btn" onclick="showPage('systems')">← BACK</button>
+    <div class="pg-logo" id="detail-title">—</div>
+    <div class="detail-live-dot"></div>
+  </div>
+  <div class="page-scroll">
+    <div class="pg-body">
+      <div class="page-alert-bar" id="detail-alert">🔥 FIRE ALERT — DANGEROUS CONDITIONS</div>
+      <div id="detail-body"><div class="loading">Connecting</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CINEMATIC ALL-SYSTEMS
+════════════════════════════════════════════════════════════════ -->
+<div id="page-cinematic" class="page hidden">
+  <div class="pg-header">
+    <button class="back-btn" onclick="showPage('systems')">← BACK</button>
+    <div class="pg-logo">ORBIS — ALL SYSTEMS</div>
+    <div class="pg-clock" id="clock-cin"></div>
+  </div>
+  <div class="page-scroll">
+    <div class="pg-body">
+      <div class="page-alert-bar" id="cin-alert">🔥 FIRE ALERT — DANGEROUS CONDITIONS</div>
+      <div id="cin-body"><div class="loading">Loading</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WEATHER CINEMATIC PAGE
+════════════════════════════════════════════════════════════════ -->
+<div id="page-weather" class="page hidden">
+  <div class="pg-header">
+    <button class="back-btn" onclick="showPage('detail-back')">← BACK</button>
+    <div class="pg-logo">WEATHER STATION</div>
+    <div class="detail-live-dot"></div>
+  </div>
+  <div class="page-scroll">
+    <div class="pg-body">
+      <div class="page-alert-bar" id="wp-alert">⚠ HEAT ALERT</div>
+
+      <div style="display:flex;align-items:center;gap:8px;font-size:.62rem;color:var(--c-muted);margin-bottom:18px;flex-wrap:wrap;">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--c-glow2);animation:pipBlink 2s infinite"></div>
+        <span>LIVE</span>
+        <span id="wp-daynight" style="color:var(--c-glow2)">—</span>
+        <span style="margin-left:auto">Sync: <span id="wp-sync">—</span></span>
+      </div>
+
+      <div class="weather-hero">
+        <div class="hero-main">
+          <div id="wp-condition" style="font-size:1.1rem;margin-bottom:4px">—</div>
+          <div><span class="hero-temp" id="wp-temp">--</span><span class="hero-unit">°C</span></div>
+          <div class="hero-lbl">AMBIENT TEMPERATURE</div>
+          <div class="hero-badge" id="wp-badge">SCANNING</div>
+        </div>
+        <div class="hero-side">
+          <div class="side-card">
+            <div class="d-lbl">Humidity</div>
+            <div><span class="d-val" style="color:var(--c-glow);font-size:1.4rem" id="wp-hum">--</span><span class="d-unit">%</span></div>
+            <div class="d-bar"><div class="d-bar-fill" id="wp-hum-bar" style="background:var(--c-glow)"></div></div>
+            <div class="d-sub" id="wp-hum-desc">—</div>
+          </div>
+          <div class="side-card">
+            <div class="d-lbl">Heat Index</div>
+            <div><span class="d-val" style="color:var(--c-warn);font-size:1.4rem" id="wp-hi">--</span><span class="d-unit">°C</span></div>
+            <div class="d-sub" id="wp-hi-desc">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+        <div class="d-card"><div class="d-lbl">Dew Point</div><div class="d-val" style="color:var(--c-glow2)" id="wp-dew">--</div><div class="d-unit" style="display:inline">°C</div><div class="d-sub" id="wp-dew-desc">—</div></div>
+        <div class="d-card"><div class="d-lbl">Abs Humidity</div><div class="d-val" style="color:var(--c-glow)" id="wp-abs">--</div><div class="d-unit" style="display:inline">g/m³</div></div>
+        <div class="d-card"><div class="d-lbl">Vapor Pressure</div><div class="d-val" style="color:var(--c-warn)" id="wp-vp">--</div><div class="d-unit" style="display:inline">hPa</div></div>
+        <div class="d-card"><div class="d-lbl">Light Level</div><div class="d-val" style="color:var(--c-glow)" id="wp-light">--</div><div class="d-unit" style="display:inline">%</div><div class="d-bar"><div class="d-bar-fill" id="wp-light-bar" style="background:var(--c-warn)"></div></div></div>
+        <div class="d-card"><div class="d-lbl">Sensor</div><div class="d-val" style="color:var(--c-glow2)" id="wp-sensor">OK</div><div class="d-sub">DHT22 GPIO4</div></div>
+      </div>
+
+      <div class="comfort-block">
+        <div class="d-lbl">Thermal Comfort Index</div>
+        <div class="comfort-scale">
+          <div class="comfort-needle" id="wp-needle" style="left:0%"></div>
+        </div>
+        <div class="comfort-labels">
+          <span>Cool</span><span>Pleasant</span><span>Warm</span><span>Caution</span><span>Danger</span>
+        </div>
+        <div class="comfort-level" id="wp-comfort-level">—</div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-title">
+          2-HOUR TREND
+          <span class="chart-pts" id="wp-pts">0 pts</span>
+        </div>
+        <canvas id="wp-chart" height="120" style="width:100%;display:block"></canvas>
+        <div class="chart-legend">
+          <span style="color:var(--c-warn)">■ Temp °C</span>
+          <span style="color:var(--c-glow)">■ Humidity %</span>
+        </div>
+      </div>
+
+      <div class="page-footer">ORBIS · WEATHER STATION · ESP32 + DHT22 · <span class="blink">●</span> ONLINE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
 <script>
+/* ── CONFIG ────────────────────────────────────────────────────── */
 const WORKER = 'https://orbis-relay.riyaafrin320.workers.dev';
 let liveData = null;
-let lastAlertState = false;
+let lastAlert = false;
 let dialShown = false;
-let wpHist = {times:[], temps:[], hums:[]};
+let wpHistory = { times:[], temps:[], hums:[] };
+let currentDetailSys = 'weather';
+let detailCameFrom = 'systems';
 
-// STARFIELD — randomizes position each load
-(()=>{
-  const c = document.getElementById('canvas');
-  const ctx = c.getContext('2d');
-  function rs(){c.width=window.innerWidth;c.height=window.innerHeight;}
-  rs(); window.addEventListener('resize',rs);
-  const S = Array.from({length:200}, ()=>({
-    x: Math.random()*window.innerWidth,
-    y: Math.random()*window.innerHeight*(0.55 + Math.random()*0.2),
-    r: Math.random()*1.3+.2,
-    a: Math.random(),
-    da: (Math.random()-.5)*.004
-  }));
-  function draw(){
-    ctx.clearRect(0,0,c.width,c.height);
-    S.forEach(s=>{
-      s.a+=s.da; if(s.a<=0||s.a>=1) s.da=-s.da;
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(200,230,255,'+s.a+')'; ctx.fill();
-    });
-    requestAnimationFrame(draw);
+/* ── AURORA ─────────────────────────────────────────────────────── */
+function initAurora() {
+  const c = document.getElementById('aurora-canvas');
+  if (!c) return;
+  fallbackAurora(c);
+}
+
+function fallbackAurora(canvas) {
+  // This canvas draws the deep midnight blue sky + milky way nebula glow
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  // Milky way drift offset — moves imperceptibly slowly
+  let driftX = 0, driftY = 0;
+  let driftAngle = 0;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
   }
-  draw();
-})();
+  resize();
+  window.addEventListener('resize', resize);
 
-// INTRO
-window.addEventListener('load',()=>setTimeout(()=>{
-  const c=document.getElementById('mainContent');
-  c.style.animation='orbisReveal .8s ease forwards';
-  c.style.opacity='1';
-},500));
+  function frame(ts) {
+    ctx.clearRect(0, 0, W, H);
 
-// CLOCKS
-setInterval(()=>{
-  const t=new Date().toTimeString().slice(0,8);
-  ['sys-time','cin-time','wp-time'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t;});
-},1000);
+    // ── Deep midnight blue gradient sky (matches reference exactly)
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0,    '#04091a'); // near-black navy at top
+    sky.addColorStop(0.25, '#071530'); // deep navy
+    sky.addColorStop(0.55, '#0c2050'); // rich midnight blue
+    sky.addColorStop(0.78, '#0a1838'); // lower navy
+    sky.addColorStop(1,    '#050c1a'); // fade to near-black
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
 
-// NAV
-function enterSystems(){
-  document.getElementById('landing').style.display='none';
-  document.getElementById('systems-page').style.display='block';
+    // ── Milky Way core — soft glowing column drifting very slowly
+    driftAngle += 0.00004; // extremely slow drift
+    driftX = Math.sin(driftAngle) * W * 0.04;
+    driftY = Math.cos(driftAngle * 0.7) * H * 0.02;
+
+    const mwCX = W * 0.52 + driftX;
+    const mwCY = H * 0.38 + driftY;
+
+    // Outer haze — wide diffuse blue-white band
+    const mwOuter = ctx.createRadialGradient(mwCX, mwCY, 0, mwCX, mwCY, W * 0.55);
+    mwOuter.addColorStop(0,   'rgba(120,160,230,0.07)');
+    mwOuter.addColorStop(0.4, 'rgba(80,120,200,0.04)');
+    mwOuter.addColorStop(1,   'rgba(40,70,150,0)');
+    ctx.fillStyle = mwOuter;
+    ctx.fillRect(0, 0, W, H);
+
+    // Inner core — brighter blueish-white column
+    const mwInner = ctx.createRadialGradient(mwCX, mwCY, 0, mwCX, mwCY, W * 0.22);
+    mwInner.addColorStop(0,   'rgba(180,210,255,0.11)');
+    mwInner.addColorStop(0.5, 'rgba(130,170,240,0.06)');
+    mwInner.addColorStop(1,   'rgba(80,120,200,0)');
+    ctx.fillStyle = mwInner;
+    ctx.fillRect(0, 0, W, H);
+
+    // Secondary nebula patch (lower, offset — like reference's lower bright zone)
+    const mwLow = ctx.createRadialGradient(
+      mwCX * 0.85, mwCY * 1.5, 0,
+      mwCX * 0.85, mwCY * 1.5, W * 0.3
+    );
+    mwLow.addColorStop(0,   'rgba(160,200,255,0.09)');
+    mwLow.addColorStop(0.6, 'rgba(100,150,220,0.04)');
+    mwLow.addColorStop(1,   'rgba(60,100,180,0)');
+    ctx.fillStyle = mwLow;
+    ctx.fillRect(0, 0, W, H);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
-function goBack(to){
-  document.getElementById('detail-page').style.display='none';
-  document.getElementById('systems-page').style.display='none';
-  document.getElementById('landing').style.display='none';
-  if(to==='landing'){document.getElementById('landing').style.display='flex';}
-  else{document.getElementById('systems-page').style.display='block';}
+
+/* ── STARS ──────────────────────────────────────────────────────── */
+function initStars() {
+  const c = document.getElementById('star-canvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = c.width  = window.innerWidth;
+    H = c.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── Generate 600 stars across 4 layers like the reference
+  // Layer 0: tiny far dust — hundreds of micro dots
+  // Layer 1: small background — dim blue-white
+  // Layer 2: mid — normal twinkling
+  // Layer 3: bright foreground — a few large glowing stars
+  const stars = [];
+
+  // Dust layer — 300 tiny barely-visible specks
+  for (let i = 0; i < 300; i++) {
+    stars.push({
+      x: Math.random(), y: Math.random() * 0.88,
+      r: Math.random() * 0.5 + 0.1,
+      a: Math.random() * 0.4 + 0.1,
+      da: (Math.random() - 0.5) * 0.0004, // very slow twinkle
+      layer: 0,
+      // Drift — imperceptibly slow
+      vx: (Math.random() - 0.5) * 0.000008,
+      vy: (Math.random() - 0.5) * 0.000004,
+    });
+  }
+  // Background layer — 180 dim small stars
+  for (let i = 0; i < 180; i++) {
+    stars.push({
+      x: Math.random(), y: Math.random() * 0.85,
+      r: Math.random() * 0.8 + 0.3,
+      a: Math.random() * 0.55 + 0.15,
+      da: (Math.random() - 0.5) * 0.0006,
+      layer: 1,
+      vx: (Math.random() - 0.5) * 0.000006,
+      vy: (Math.random() - 0.5) * 0.000003,
+    });
+  }
+  // Mid layer — 100 normal stars
+  for (let i = 0; i < 100; i++) {
+    stars.push({
+      x: Math.random(), y: Math.random() * 0.80,
+      r: Math.random() * 1.1 + 0.5,
+      a: Math.random() * 0.6 + 0.3,
+      da: (Math.random() - 0.5) * 0.0008,
+      layer: 2,
+      vx: (Math.random() - 0.5) * 0.000005,
+      vy: (Math.random() - 0.5) * 0.000002,
+    });
+  }
+  // Bright layer — 30 large glowing stars
+  for (let i = 0; i < 30; i++) {
+    stars.push({
+      x: Math.random(), y: Math.random() * 0.72,
+      r: Math.random() * 1.6 + 1.0,
+      a: Math.random() * 0.5 + 0.5,
+      da: (Math.random() - 0.5) * 0.0005,
+      layer: 3,
+      vx: (Math.random() - 0.5) * 0.000004,
+      vy: (Math.random() - 0.5) * 0.000002,
+    });
+  }
+
+  // Color palette per layer — cool blue-whites like the reference
+  const colors = [
+    [170, 195, 240],  // 0: dusty blue
+    [195, 215, 255],  // 1: pale blue-white
+    [220, 235, 255],  // 2: blue-white
+    [255, 255, 255],  // 3: pure white
+  ];
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (const s of stars) {
+      // Slow twinkle
+      s.a += s.da;
+      if (s.a <= 0.05) { s.a = 0.05; s.da = Math.abs(s.da); }
+      if (s.a >= 1)    { s.a = 1;    s.da = -Math.abs(s.da); }
+
+      // Imperceptibly slow drift
+      s.x += s.vx;
+      s.y += s.vy;
+      // Wrap edges
+      if (s.x < 0) s.x = 1; if (s.x > 1) s.x = 0;
+      if (s.y < 0) s.y = 0.88; if (s.y > 0.88) s.y = 0;
+
+      const px = s.x * W;
+      const py = s.y * H;
+      const [r, g, b] = colors[s.layer];
+
+      // Glow halo for bright stars
+      if (s.layer >= 2 && s.a > 0.4) {
+        const glowR = s.r * (s.layer === 3 ? 5 : 3);
+        const grd = ctx.createRadialGradient(px, py, 0, px, py, glowR);
+        grd.addColorStop(0,   `rgba(${r},${g},${b},${s.a * (s.layer === 3 ? 0.18 : 0.1)})`);
+        grd.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.beginPath();
+        ctx.arc(px, py, glowR, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+      }
+
+      // Star core
+      ctx.beginPath();
+      ctx.arc(px, py, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${s.a})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
-function openDetail(sys){
-  document.getElementById('systems-page').style.display='none';
-  document.getElementById('detail-page').style.display='block';
+
+/* ── CLOCKS ─────────────────────────────────────────────────────── */
+function tick() {
+  const t = new Date().toTimeString().slice(0, 8);
+  ['clock-sys','clock-cin'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.textContent = t;
+  });
+}
+tick();
+setInterval(tick, 1000);
+
+/* ── PAGE NAVIGATION ────────────────────────────────────────────── */
+const pages = ['landing','systems','detail','cinematic','weather'];
+
+function showPage(name) {
+  if (name === 'detail-back') {
+    showPage(detailCameFrom === 'cinematic' ? 'cinematic' : 'systems');
+    return;
+  }
+  pages.forEach(p => {
+    const el = document.getElementById('page-' + p);
+    if (el) el.classList.toggle('hidden', p !== name);
+  });
+  if (name === 'systems' && liveData) renderSystems();
+  if (name === 'cinematic') renderCinematic();
+  if (name === 'weather') updateWeatherPage();
+}
+
+function showDetail(sys) {
+  currentDetailSys = sys;
+  detailCameFrom = 'systems';
+  showPage('detail');
   renderDetail(sys);
 }
-function openCinematic(){
-  document.getElementById('weather-embed-page').style.display='block';
-  renderCinematic();
-}
-function closeCinematic(){document.getElementById('weather-embed-page').style.display='none';}
-function openWeatherPage(){document.getElementById('weather-page').style.display='block'; updateWeatherPage();}
-function closeWeatherPage(){document.getElementById('weather-page').style.display='none';}
 
-// FETCH
-async function fetchData(){
-  try{
-    const r = await fetch(WORKER);
-    if(!r.ok) throw new Error();
-    const rows = await r.json();
-    if(!rows||!rows.length) return;
-    liveData = rows[0];
+/* ── FETCH ──────────────────────────────────────────────────────── */
+async function fetchData() {
+  try {
+    const res = await fetch(WORKER);
+    if (!res.ok) throw new Error();
+    const rows = await res.json();
+    if (!rows || !rows.length) return;
 
-    // remap for compatibility
-    const d = liveData;
-    d.heatIndex = d.heat_index;
-    d.dewPoint = d.dew_point;
-    d.absHumidity = d.abs_humidity;
-    d.vaporPressure = d.vapor_pressure;
-    d.lightLevel = d.light_level;
-    d.isDay = d.is_day;
-    d.sensorOk = d.sensor_ok;
-    d.rfidOnline = d.rfid_online;
+    const d = rows[0];
+    // Normalize field names
+    d.heatIndex    = d.heat_index    ?? d.heatIndex;
+    d.dewPoint     = d.dew_point     ?? d.dewPoint;
+    d.absHumidity  = d.abs_humidity  ?? d.absHumidity;
+    d.vaporPressure= d.vapor_pressure?? d.vaporPressure;
+    d.lightLevel   = d.light_level   ?? d.lightLevel;
+    d.isDay        = d.is_day        ?? d.isDay;
+    d.sensorOk     = d.sensor_ok     ?? d.sensorOk;
+    d.rfidOnline   = d.rfid_online   ?? d.rfidOnline;
+    liveData = d;
 
-    // chart history
-    const now = Math.floor(Date.now()/1000);
-    if(d.temperature&&(!wpHist.times.length||(now-wpHist.times[wpHist.times.length-1])>=10)){
-      wpHist.times.push(now); wpHist.temps.push(d.temperature); wpHist.hums.push(d.humidity);
-      if(wpHist.times.length>48){wpHist.times.shift();wpHist.temps.shift();wpHist.hums.shift();}
+    // Chart history
+    const now = Math.floor(Date.now() / 1000);
+    if (d.temperature && (!wpHistory.times.length || (now - wpHistory.times[wpHistory.times.length - 1]) >= 10)) {
+      wpHistory.times.push(now);
+      wpHistory.temps.push(d.temperature);
+      wpHistory.hums.push(d.humidity);
+      if (wpHistory.times.length > 48) {
+        wpHistory.times.shift(); wpHistory.temps.shift(); wpHistory.hums.shift();
+      }
     }
 
-    const alert = d.alert||d.gas==='DANGER';
-    document.getElementById('alertOverlay').className=alert?'alert-overlay active':'alert-overlay';
-    document.getElementById('alertPopup').className=alert?'alert-popup active':'alert-popup';
-    document.getElementById('sysAlert').className=alert?'page-alert show':'page-alert';
-    document.getElementById('detailAlert').className=alert?'page-alert show':'page-alert';
+    // Alert state
+    const alert = d.alert || d.gas === 'DANGER';
+    setAlert(alert);
+    if (alert && !lastAlert && !dialShown) { dialShown = true; showDial(); }
+    if (!alert) { lastAlert = false; dialShown = false; }
+    lastAlert = alert;
 
-    // vibrate on new alert
-    if(alert&&!lastAlertState){
-      if(navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
-      if(!dialShown){dialShown=true;showFireDial();}
-    }
-    if(!alert){lastAlertState=false;dialShown=false;}
-    lastAlertState=alert;
+    // Update card statuses
+    const gc = d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
+    const gs = d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARNING' : 'LIVE';
+    ['gas-card-status'].forEach(id => { const e = document.getElementById(id); if (e) { e.textContent = gs; e.style.color = gc; } });
+    const re = document.getElementById('rfid-card-status');
+    if (re) { re.textContent = d.rfidOnline ? 'LIVE' : 'OFFLINE'; re.style.color = d.rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
+    document.getElementById('live-count').textContent = d.rfidOnline ? '3' : '2';
 
-    const gs=d.gas;
-    const gc=gs==='DANGER'?'#ff4757':gs==='WARNING'?'#ff9f43':'#00ff9d';
-    const gcEl=document.getElementById('gasCardStatus');
-    if(gcEl){gcEl.textContent=gs==='DANGER'?'DANGER':gs==='WARNING'?'WARNING':'LIVE';gcEl.style.color=gc;}
-    const ro=document.getElementById('rfidCardStatus');
-    if(ro){ro.textContent=d.rfidOnline?'LIVE':'OFFLINE';ro.style.color=d.rfidOnline?'#00ff9d':'#ff4757';}
-    document.getElementById('liveCount').textContent=d.rfidOnline?'3':'2';
+    // Update active pages
+    if (!document.getElementById('page-detail').classList.contains('hidden')) renderDetail(currentDetailSys);
+    if (!document.getElementById('page-cinematic').classList.contains('hidden')) renderCinematic();
+    if (!document.getElementById('page-weather').classList.contains('hidden')) updateWeatherPage();
 
-    // update weather page if open
-    if(document.getElementById('weather-page').style.display!=='none') updateWeatherPage();
-    // update cinematic if open
-    if(document.getElementById('weather-embed-page').style.display!=='none') renderCinematic();
-  }catch(e){}
-}
-fetchData(); setInterval(fetchData,5000);
-
-// FIRE DIAL
-function showFireDial(){
-  document.getElementById('fireDial').className='fire-dial active';
-  const s=document.getElementById('dialStatus');
-  s.textContent='Dialing...';
-  setTimeout(()=>{s.textContent='Connecting...';},1500);
-  setTimeout(()=>{s.textContent='Call connected - Fire brigade alerted';},3000);
-}
-function closeDial(){document.getElementById('fireDial').className='fire-dial';}
-
-// CARD HELPER
-function dc(label,value,unit,sub,color,bar,barColor){
-  let b='';
-  if(bar!==undefined){b='<div class="d-bar-wrap"><div class="d-bar-track"><div class="d-bar-fill" style="width:'+Math.min(bar,100)+'%;background:'+(barColor||'#00d4ff')+'"></div></div></div>';}
-  return '<div class="d-card"><div class="d-label">'+label+'</div><div class="d-value" style="color:'+(color||'#c8e8f5')+'">'+value+'<span style="font-size:.7rem;color:#3a6680;margin-left:4px">'+(unit||'')+'</span></div>'+(sub?'<div class="d-sub">'+sub+'</div>':'')+b+'</div>';
+  } catch (e) { /* silent */ }
 }
 
-// RENDER DETAIL
-function renderDetail(sys){
-  const d=liveData;
-  if(sys==='weather'){
-    document.getElementById('detail-title').textContent='WEATHER STATION';
-    if(!d){document.getElementById('detail-body').innerHTML='<div class="loading-txt">Connecting...</div>';return;}
-    document.getElementById('detail-body').innerHTML=
-      '<div class="sec-title">SCREEN DATA</div><div class="d-grid">'
-      +dc('Temperature',d.temperature.toFixed(1),'C',d.condition,'#ff9f43')
-      +dc('Humidity',d.humidity.toFixed(1),'%',d.humidity>70?'High':'Comfortable','#00d4ff',d.humidity,'#00d4ff')
-      +dc('Heat Index',d.heatIndex.toFixed(1),'C',d.comfort,'#ff9f43')
-      +dc('Condition',d.condition,'','','#00d4ff')
-      +'</div>'
-      +'<div class="sec-title">REAL DATA</div><div class="d-grid">'
-      +dc('Dew Point',d.dewPoint.toFixed(1),'C',d.dewPoint>20?'Muggy':'Dry','#00ff9d')
-      +dc('Abs Humidity',d.absHumidity.toFixed(2),'g/m3','','#00d4ff')
-      +dc('Vapor Pressure',d.vaporPressure.toFixed(2),'hPa','','#ff9f43')
-      +dc('Light Level',d.lightLevel,'%',d.isDay?'Daytime':'Nighttime','#00d4ff',d.lightLevel,'#ff9f43')
-      +dc('Thermal Comfort',d.comfort,'','','#ff9f43')
-      +dc('Sensor',d.sensorOk?'OK':'ERR','','DHT22 GPIO4',d.sensorOk?'#00ff9d':'#ff4757')
-      +'</div>'
-      +'<div class="cinematic-link" onclick="openWeatherPage()">VIEW CINEMATIC WEATHER DASHBOARD →</div>';
+fetchData();
+setInterval(fetchData, 5000);
+
+/* ── BOOT (after DOM ready) ─────────────────────────────────────── */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { initAurora(); initStars(); });
+} else {
+  initAurora(); initStars();
+}
+
+/* ── ALERTS ─────────────────────────────────────────────────────── */
+function setAlert(on) {
+  document.getElementById('alert-flash').classList.toggle('active', on);
+  document.getElementById('alert-bar').classList.toggle('active', on);
+  ['sys-alert','detail-alert','cin-alert'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.classList.toggle('show', on);
+  });
+  if (on && navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
+}
+
+function showDial() {
+  document.getElementById('fire-modal').classList.add('active');
+  const s = document.getElementById('dial-status');
+  s.textContent = 'Dialing...';
+  setTimeout(() => { s.textContent = 'Connecting...'; }, 1500);
+  setTimeout(() => { s.textContent = 'Fire brigade alerted ✓'; }, 3000);
+}
+function closeDial() { document.getElementById('fire-modal').classList.remove('active'); }
+
+/* ── CARD BUILDER ───────────────────────────────────────────────── */
+function card(label, value, unit, sub, color, barPct, barColor) {
+  const bar = barPct !== undefined
+    ? `<div class="d-bar"><div class="d-bar-fill" style="width:${Math.min(barPct,100)}%;background:${barColor||'#00c8ff'}"></div></div>`
+    : '';
+  return `<div class="d-card">
+    <div class="d-lbl">${label}</div>
+    <div class="d-val" style="color:${color||'var(--c-text)'}">
+      ${value}<span class="d-unit">${unit||''}</span>
+    </div>
+    ${sub ? `<div class="d-sub">${sub}</div>` : ''}
+    ${bar}
+  </div>`;
+}
+
+/* ── RENDER DETAIL ──────────────────────────────────────────────── */
+function renderDetail(sys) {
+  const d = liveData;
+  const titleEl = document.getElementById('detail-title');
+
+  if (!d) {
+    document.getElementById('detail-body').innerHTML = '<div class="loading">Connecting</div>';
+    return;
   }
-  else if(sys==='gas'){
-    document.getElementById('detail-title').textContent='GAS & FIRE';
-    if(!d){document.getElementById('detail-body').innerHTML='<div class="loading-txt">Connecting...</div>';return;}
-    const gc=d.gas==='DANGER'?'#ff4757':d.gas==='WARNING'?'#ff9f43':'#00ff9d';
-    const m2p=Math.min(d.mq2/1023*100,100);
-    const m13p=Math.min(d.mq135/1023*100,100);
-    const m2c=d.mq2>500?'#ff4757':d.mq2>350?'#ff9f43':'#00ff9d';
-    document.getElementById('detail-body').innerHTML=
-      '<div class="sec-title">SCREEN DATA</div><div class="d-grid">'
-      +dc('Status',d.gas,'',d.gas==='DANGER'?'Evacuate now!':d.gas==='WARNING'?'Moderate':'Air clean',gc)
-      +dc('Smoke MQ2',d.mq2,'','Raw value','#ff9f43',m2p,m2c)
-      +dc('Toxin MQ135',d.mq135,'','Raw value','#b06fff',m13p,'#b06fff')
-      +dc('Pump',d.pump,'','Auto trigger',d.pump==='ON'?'#ff4757':'#00ff9d')
-      +'</div>'
-      +'<div class="sec-title">REAL DATA</div><div class="d-grid">'
-      +dc('Smoke %',m2p.toFixed(1),'%','MQ2 level',m2c,m2p,m2c)
-      +dc('Toxin %',m13p.toFixed(1),'%','MQ135 level','#b06fff',m13p,'#b06fff')
-      +dc('Alert Level',d.gas==='DANGER'?'HIGH':d.gas==='WARNING'?'MED':'LOW','','',gc)
-      +dc('Sprinkler',d.pump==='ON'?'ACTIVE':'STANDBY','','Auto on DANGER',d.pump==='ON'?'#ff4757':'#00ff9d')
-      +'</div>';
+
+  if (sys === 'weather') {
+    titleEl.textContent = 'WEATHER STATION';
+    const m2p = Math.min(d.mq2 / 1023 * 100, 100);
+    document.getElementById('detail-body').innerHTML = `
+      <div class="section-label">Primary Readings</div>
+      <div class="d-grid">
+        ${card('Temperature', d.temperature.toFixed(1), '°C', d.condition, '#ffaa00')}
+        ${card('Humidity', d.humidity.toFixed(1), '%', d.humidity > 70 ? 'High' : 'Comfortable', '#00c8ff', d.humidity, '#00c8ff')}
+        ${card('Heat Index', d.heatIndex.toFixed(1), '°C', d.comfort, '#ffaa00')}
+        ${card('Condition', d.condition, '', '', '#00c8ff')}
+      </div>
+      <div class="section-label">Derived Metrics</div>
+      <div class="d-grid">
+        ${card('Dew Point', d.dewPoint.toFixed(1), '°C', d.dewPoint > 20 ? 'Muggy' : 'Dry', '#00ffaa')}
+        ${card('Abs Humidity', d.absHumidity.toFixed(2), 'g/m³', '', '#00c8ff')}
+        ${card('Vapor Pressure', d.vaporPressure.toFixed(2), 'hPa', '', '#ffaa00')}
+        ${card('Light Level', d.lightLevel, '%', d.isDay ? 'Daytime' : 'Nighttime', '#00c8ff', d.lightLevel, '#ffaa00')}
+        ${card('Thermal Comfort', d.comfort, '', '', '#ffaa00')}
+        ${card('Sensor', d.sensorOk ? 'OK' : 'ERR', '', 'DHT22 GPIO4', d.sensorOk ? '#00ffaa' : '#ff3a3a')}
+      </div>
+      <div class="view-all-link" onclick="openWeatherCinematic()">VIEW CINEMATIC WEATHER DASHBOARD →</div>`;
   }
-  else if(sys==='door'){
-    document.getElementById('detail-title').textContent='RFID DOOR';
-    if(!d){document.getElementById('detail-body').innerHTML='<div class="loading-txt">Connecting...</div>';return;}
-    const dc2=d.door==='LOCKED'?'#00ff9d':d.door==='OPEN'?'#ff9f43':'#ff4757';
-    document.getElementById('detail-body').innerHTML=
-      '<div class="sec-title">SCREEN DATA</div><div class="d-grid">'
-      +dc('Door Status',d.door,'','',dc2)
-      +dc('Last Flat',d.flat,'','Last accessed','#c8e8f5')
-      +'</div>'
-      +'<div class="sec-title">REAL DATA</div>'
-      +'<div class="info-block"><div class="d-label">Last card UID</div><div style="font-family:Space Mono,monospace;font-size:.85rem;color:#00d4ff;margin-top:6px;letter-spacing:.15em">'+d.uid+'</div></div>'
-      +'<div class="d-grid">'
-      +dc('RFID Module',d.rfidOnline?'ONLINE':'OFFLINE','','ESP32 RFID',d.rfidOnline?'#00ff9d':'#ff4757')
-      +dc('Access',d.door==='DENIED'?'DENIED':d.door==='OPEN'?'GRANTED':'LOCKED','','',dc2)
-      +'</div>';
+  else if (sys === 'gas') {
+    titleEl.textContent = 'GAS & FIRE MONITOR';
+    const gc = d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : '#00ffaa';
+    const m2p = Math.min(d.mq2 / 1023 * 100, 100);
+    const m13p = Math.min(d.mq135 / 1023 * 100, 100);
+    const m2c = d.mq2 > 500 ? '#ff3a3a' : d.mq2 > 350 ? '#ffaa00' : '#00ffaa';
+    document.getElementById('detail-body').innerHTML = `
+      <div class="section-label">Status</div>
+      <div class="d-grid">
+        ${card('Gas Status', d.gas, '', d.gas === 'DANGER' ? 'Evacuate now!' : d.gas === 'WARNING' ? 'Elevated levels' : 'Air is clean', gc)}
+        ${card('Smoke MQ2', d.mq2, '', 'Raw ADC value', '#ffaa00', m2p, m2c)}
+        ${card('Toxin MQ135', d.mq135, '', 'Raw ADC value', '#b06fff', m13p, '#b06fff')}
+        ${card('Sprinkler', d.pump === 'ON' ? 'ACTIVE' : 'STANDBY', '', 'Auto trigger', d.pump === 'ON' ? '#ff3a3a' : '#00ffaa')}
+      </div>
+      <div class="section-label">Percentages</div>
+      <div class="d-grid">
+        ${card('Smoke %', m2p.toFixed(1), '%', 'MQ2 saturation', m2c, m2p, m2c)}
+        ${card('Toxin %', m13p.toFixed(1), '%', 'MQ135 level', '#b06fff', m13p, '#b06fff')}
+        ${card('Alert Level', d.gas === 'DANGER' ? 'HIGH' : d.gas === 'WARNING' ? 'MED' : 'LOW', '', '', gc)}
+        ${card('Pump', d.pump === 'ON' ? 'ACTIVE' : 'STANDBY', '', 'Auto on DANGER', d.pump === 'ON' ? '#ff3a3a' : '#00ffaa')}
+      </div>`;
+  }
+  else if (sys === 'door') {
+    titleEl.textContent = 'RFID DOOR LOCK';
+    const dc = d.door === 'LOCKED' ? '#00ffaa' : d.door === 'OPEN' ? '#ffaa00' : '#ff3a3a';
+    document.getElementById('detail-body').innerHTML = `
+      <div class="section-label">Door Status</div>
+      <div class="d-grid">
+        ${card('Door', d.door, '', '', dc)}
+        ${card('Last Flat', d.flat, '', 'Last accessed', 'var(--c-text)')}
+      </div>
+      <div class="info-block">
+        <div class="d-lbl">Last Card UID</div>
+        <div style="font-family:var(--font-mono);font-size:.85rem;color:var(--c-glow);margin-top:6px;letter-spacing:.15em">${d.uid || '—'}</div>
+      </div>
+      <div class="d-grid">
+        ${card('RFID Module', d.rfidOnline ? 'ONLINE' : 'OFFLINE', '', 'ESP32 RFID', d.rfidOnline ? '#00ffaa' : '#ff3a3a')}
+        ${card('Access', d.door === 'DENIED' ? 'DENIED' : d.door === 'OPEN' ? 'GRANTED' : 'LOCKED', '', '', dc)}
+      </div>`;
   }
 }
 
-// RENDER CINEMATIC ALL SYSTEMS
-function renderCinematic(){
-  const d=liveData;
-  if(!d){document.getElementById('cin-body').innerHTML='<div style="color:#3a6680;font-family:Space Mono,monospace;font-size:.65rem;text-align:center;padding:40px">Loading...</div>';return;}
-  const m2p=Math.min(d.mq2/1023*100,100).toFixed(1);
-  const m13p=Math.min(d.mq135/1023*100,100).toFixed(1);
-  const gc=d.gas==='DANGER'?'#ff4757':d.gas==='WARNING'?'#ff9f43':'#00ff9d';
-  const dc2=d.door==='LOCKED'?'#00ff9d':d.door==='OPEN'?'#ff9f43':'#ff4757';
-  document.getElementById('cin-body').innerHTML=
-    '<div class="sec-title">WEATHER STATION</div><div class="d-grid">'
-    +dc('Temperature',d.temperature.toFixed(1),'C',d.condition,'#ff9f43')
-    +dc('Humidity',d.humidity.toFixed(1),'%',d.humidity>70?'High':'Comfortable','#00d4ff',d.humidity,'#00d4ff')
-    +dc('Heat Index',d.heatIndex.toFixed(1),'C',d.comfort,'#ff9f43')
-    +dc('Dew Point',d.dewPoint.toFixed(1),'C','','#00ff9d')
-    +dc('Light Level',d.lightLevel,'%',d.isDay?'Daytime':'Nighttime','#00d4ff',d.lightLevel,'#ff9f43')
-    +dc('Condition',d.condition,'','','#00d4ff')
-    +'</div>'
-    +'<div class="sec-title">GAS & FIRE</div><div class="d-grid">'
-    +dc('Status',d.gas,'',d.gas==='DANGER'?'Evacuate!':d.gas==='WARNING'?'Moderate':'Air clean',gc)
-    +dc('Smoke MQ2',d.mq2,'','Raw','#ff9f43',m2p,'#ff9f43')
-    +dc('Toxin MQ135',d.mq135,'','Raw','#b06fff',m13p,'#b06fff')
-    +dc('Sprinkler',d.pump==='ON'?'ACTIVE':'STANDBY','','',d.pump==='ON'?'#ff4757':'#00ff9d')
-    +'</div>'
-    +'<div class="sec-title">RFID DOOR</div><div class="d-grid">'
-    +dc('Door',d.door,'','',dc2)
-    +dc('Last Flat',d.flat,'','','#c8e8f5')
-    +dc('RFID',d.rfidOnline?'ONLINE':'OFFLINE','','',d.rfidOnline?'#00ff9d':'#ff4757')
-    +dc('Access',d.door==='DENIED'?'DENIED':d.door==='OPEN'?'GRANTED':'LOCKED','','',dc2)
-    +'</div>'
-    +'<div class="cinematic-link" onclick="openWeatherPage()" style="margin-top:8px">VIEW CINEMATIC WEATHER →</div>';
+/* ── CINEMATIC ALL SYSTEMS ──────────────────────────────────────── */
+function renderCinematic() {
+  const d = liveData;
+  if (!d) { document.getElementById('cin-body').innerHTML = '<div class="loading">Loading</div>'; return; }
+  const m2p = Math.min(d.mq2 / 1023 * 100, 100).toFixed(1);
+  const m13p = Math.min(d.mq135 / 1023 * 100, 100).toFixed(1);
+  const gc = d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : '#00ffaa';
+  const dc = d.door === 'LOCKED' ? '#00ffaa' : d.door === 'OPEN' ? '#ffaa00' : '#ff3a3a';
+
+  document.getElementById('cin-body').innerHTML = `
+    <div class="section-label">Weather Station</div>
+    <div class="d-grid">
+      ${card('Temperature', d.temperature.toFixed(1), '°C', d.condition, '#ffaa00')}
+      ${card('Humidity', d.humidity.toFixed(1), '%', d.humidity > 70 ? 'High' : 'Normal', '#00c8ff', d.humidity, '#00c8ff')}
+      ${card('Heat Index', d.heatIndex.toFixed(1), '°C', d.comfort, '#ffaa00')}
+      ${card('Dew Point', d.dewPoint.toFixed(1), '°C', '', '#00ffaa')}
+      ${card('Light', d.lightLevel, '%', d.isDay ? 'Day' : 'Night', '#00c8ff', d.lightLevel, '#ffaa00')}
+    </div>
+    <div class="section-label">Gas & Fire Monitor</div>
+    <div class="d-grid">
+      ${card('Status', d.gas, '', d.gas === 'DANGER' ? 'Evacuate!' : d.gas === 'WARNING' ? 'Moderate' : 'Clear', gc)}
+      ${card('MQ2 Smoke', d.mq2, '', `${m2p}%`, '#ffaa00', parseFloat(m2p), '#ffaa00')}
+      ${card('MQ135 Toxin', d.mq135, '', `${m13p}%`, '#b06fff', parseFloat(m13p), '#b06fff')}
+      ${card('Sprinkler', d.pump === 'ON' ? 'ACTIVE' : 'STANDBY', '', '', d.pump === 'ON' ? '#ff3a3a' : '#00ffaa')}
+    </div>
+    <div class="section-label">RFID Door Lock</div>
+    <div class="d-grid">
+      ${card('Door', d.door, '', '', dc)}
+      ${card('Last Flat', d.flat, '', '', 'var(--c-text)')}
+      ${card('RFID', d.rfidOnline ? 'ONLINE' : 'OFFLINE', '', '', d.rfidOnline ? '#00ffaa' : '#ff3a3a')}
+      ${card('Access', d.door === 'DENIED' ? 'DENIED' : d.door === 'OPEN' ? 'GRANTED' : 'LOCKED', '', '', dc)}
+    </div>
+    <div class="view-all-link" onclick="openWeatherCinematic()" style="margin-top:6px">VIEW CINEMATIC WEATHER →</div>`;
 }
 
-// WEATHER PAGE UPDATE
-function updateWeatherPage(){
-  const d=liveData;
-  if(!d) return;
-  document.getElementById('wp-time').textContent=new Date().toTimeString().slice(0,8);
-  document.getElementById('wp-tv').textContent=d.temperature.toFixed(1);
-  document.getElementById('wp-hv').textContent=d.humidity.toFixed(1);
-  document.getElementById('wp-hiv').textContent=d.heatIndex.toFixed(1);
-  document.getElementById('wp-dw').textContent=d.dewPoint.toFixed(1);
-  document.getElementById('wp-ah').textContent=d.absHumidity.toFixed(2);
-  document.getElementById('wp-vp').textContent=d.vaporPressure.toFixed(2);
-  document.getElementById('wp-ci').textContent=d.condition;
-  document.getElementById('wp-bdg').textContent=d.condition.toUpperCase();
-  document.getElementById('wp-hg').style.width=Math.min(d.humidity,100)+'%';
-  document.getElementById('wp-hd').textContent=d.humidity>70?'High - feels heavy':d.humidity>40?'Comfortable':'Dry';
-  document.getElementById('wp-hid').textContent=d.heatIndex>d.temperature?'Feels hotter':'Matches temp';
-  document.getElementById('wp-dd').textContent=d.dewPoint>20?'Muggy':d.dewPoint>12?'Comfortable':'Dry';
-  document.getElementById('wp-ll').textContent=d.lightLevel;
-  document.getElementById('wp-lg').style.width=Math.min(d.lightLevel,100)+'%';
-  document.getElementById('wp-dn').textContent=d.isDay?'DAYTIME':'NIGHTTIME';
-  const pct=Math.max(0,Math.min(100,((d.heatIndex-15)/(54-15))*100));
-  document.getElementById('wp-nd').style.left=pct+'%';
-  document.getElementById('wp-cl').textContent=d.comfort;
-  document.getElementById('wp-ss').textContent=d.sensorOk?'OK':'ERR';
-  document.getElementById('wp-ss').className='mv '+(d.sensorOk?'cg':'cr');
-  document.getElementById('wp-ls').textContent=new Date().toTimeString().slice(0,8);
-  document.getElementById('wp-alertBar').className=d.alert?'alert-bar show':'alert-bar';
-  drawWpChart();
+/* ── WEATHER CINEMATIC ──────────────────────────────────────────── */
+function openWeatherCinematic() {
+  detailCameFrom = document.getElementById('page-cinematic').classList.contains('hidden') ? 'systems' : 'cinematic';
+  showPage('weather');
 }
 
-// WEATHER PAGE CHART
-function drawWpChart(){
-  const c=document.getElementById('wp-hc');
-  const ctx=c.getContext('2d');
-  const dpr=window.devicePixelRatio||1;
-  const W=c.offsetWidth||800,H=110;
-  c.width=W*dpr;c.height=H*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
-  const pts=wpHist.temps.length;
-  if(pts<2){ctx.fillStyle='#3a6680';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('Collecting data...',W/2,H/2);return;}
-  const p={t:8,r:8,b:22,l:34};
-  const cw=W-p.l-p.r,ch=H-p.t-p.b;
-  const tMin=Math.min(...wpHist.temps)-2,tMax=Math.max(...wpHist.temps)+2;
-  const toX=i=>p.l+(i/(pts-1))*cw;
-  const toYT=v=>p.t+ch-((v-tMin)/(tMax-tMin))*ch;
-  const toYH=v=>p.t+ch-(v/100)*ch;
-  ctx.strokeStyle='#0d2233';ctx.lineWidth=1;
-  for(let i=0;i<=4;i++){const y=p.t+i*(ch/4);ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
-  ctx.beginPath();wpHist.hums.forEach((h,i)=>i===0?ctx.moveTo(toX(i),toYH(h)):ctx.lineTo(toX(i),toYH(h)));
-  ctx.lineTo(toX(pts-1),p.t+ch);ctx.lineTo(toX(0),p.t+ch);ctx.closePath();
-  ctx.fillStyle='rgba(0,212,255,.07)';ctx.fill();
-  ctx.beginPath();wpHist.hums.forEach((h,i)=>i===0?ctx.moveTo(toX(i),toYH(h)):ctx.lineTo(toX(i),toYH(h)));
-  ctx.strokeStyle='rgba(0,212,255,.55)';ctx.lineWidth=1.5;ctx.stroke();
-  ctx.beginPath();wpHist.temps.forEach((t,i)=>i===0?ctx.moveTo(toX(i),toYT(t)):ctx.lineTo(toX(i),toYT(t)));
-  ctx.lineTo(toX(pts-1),p.t+ch);ctx.lineTo(toX(0),p.t+ch);ctx.closePath();
-  ctx.fillStyle='rgba(255,159,67,.1)';ctx.fill();
-  ctx.beginPath();wpHist.temps.forEach((t,i)=>i===0?ctx.moveTo(toX(i),toYT(t)):ctx.lineTo(toX(i),toYT(t)));
-  ctx.strokeStyle='rgba(255,159,67,.9)';ctx.lineWidth=2;ctx.stroke();
-  const lx=toX(pts-1),ly=toYT(wpHist.temps[pts-1]);
-  ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fillStyle='#ff9f43';ctx.fill();
-  ctx.fillStyle='#3a6680';ctx.font='10px monospace';ctx.textAlign='right';
-  [tMin+1,(tMin+tMax)/2,tMax-1].forEach(v=>{ctx.fillText(v.toFixed(0),p.l-4,toYT(v)+4);});
-  ctx.textAlign='center';
-  const step=Math.max(1,Math.floor(pts/5));
-  for(let i=0;i<pts;i+=step){const ts=new Date(wpHist.times[i]*1000);ctx.fillText(ts.getHours().toString().padStart(2,'0')+':'+ts.getMinutes().toString().padStart(2,'0'),toX(i),H-5);}
-  document.getElementById('wp-cp').textContent=pts+' pts';
+function updateWeatherPage() {
+  const d = liveData;
+  if (!d) return;
+
+  document.getElementById('wp-temp').textContent = d.temperature.toFixed(1);
+  document.getElementById('wp-hum').textContent  = d.humidity.toFixed(1);
+  document.getElementById('wp-hi').textContent   = d.heatIndex.toFixed(1);
+  document.getElementById('wp-dew').textContent  = d.dewPoint.toFixed(1);
+  document.getElementById('wp-abs').textContent  = d.absHumidity.toFixed(2);
+  document.getElementById('wp-vp').textContent   = d.vaporPressure.toFixed(2);
+  document.getElementById('wp-light').textContent= d.lightLevel;
+  document.getElementById('wp-condition').textContent = d.condition;
+  document.getElementById('wp-badge').textContent = d.condition.toUpperCase();
+  document.getElementById('wp-daynight').textContent  = d.isDay ? 'DAYTIME' : 'NIGHTTIME';
+  document.getElementById('wp-sync').textContent = new Date().toTimeString().slice(0,8);
+
+  document.getElementById('wp-hum-bar').style.width = Math.min(d.humidity,100) + '%';
+  document.getElementById('wp-hum-desc').textContent = d.humidity > 70 ? 'High — feels heavy' : d.humidity > 40 ? 'Comfortable' : 'Dry';
+  document.getElementById('wp-hi-desc').textContent  = d.heatIndex > d.temperature ? 'Feels hotter than actual' : 'Matches temperature';
+  document.getElementById('wp-dew-desc').textContent = d.dewPoint > 20 ? 'Muggy' : d.dewPoint > 12 ? 'Comfortable' : 'Dry';
+  document.getElementById('wp-light-bar').style.width= Math.min(d.lightLevel,100) + '%';
+
+  const sEl = document.getElementById('wp-sensor');
+  sEl.textContent = d.sensorOk ? 'OK' : 'ERR';
+  sEl.style.color = d.sensorOk ? '#00ffaa' : '#ff3a3a';
+
+  // Comfort needle
+  const pct = Math.max(0, Math.min(100, ((d.heatIndex - 15) / (54 - 15)) * 100));
+  document.getElementById('wp-needle').style.left = pct + '%';
+  document.getElementById('wp-comfort-level').textContent = d.comfort;
+
+  // Alert
+  const alertOn = d.heatIndex > 39 || d.alert;
+  document.getElementById('wp-alert').classList.toggle('show', alertOn);
+
+  drawChart();
 }
-window.addEventListener('resize', drawWpChart);
+
+/* ── CHART ──────────────────────────────────────────────────────── */
+function drawChart() {
+  const c = document.getElementById('wp-chart');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = c.offsetWidth || 600, H = 120;
+  c.width = W * dpr; c.height = H * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const pts = wpHistory.temps.length;
+  document.getElementById('wp-pts').textContent = pts + ' pts';
+
+  if (pts < 2) {
+    ctx.fillStyle = 'rgba(100,160,220,0.4)';
+    ctx.font = '11px Space Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Collecting data...', W / 2, H / 2);
+    return;
+  }
+
+  const pad = { t:10, r:8, b:22, l:36 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  const tMin = Math.min(...wpHistory.temps) - 2;
+  const tMax = Math.max(...wpHistory.temps) + 2;
+  const toX = i => pad.l + (i / (pts - 1)) * cw;
+  const toYT = v => pad.t + ch - ((v - tMin) / (tMax - tMin)) * ch;
+  const toYH = v => pad.t + ch - (v / 100) * ch;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,100,160,0.2)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + i * (ch / 4);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+  }
+
+  // Humidity fill
+  ctx.beginPath();
+  wpHistory.hums.forEach((h, i) => i === 0 ? ctx.moveTo(toX(i), toYH(h)) : ctx.lineTo(toX(i), toYH(h)));
+  ctx.lineTo(toX(pts - 1), pad.t + ch); ctx.lineTo(toX(0), pad.t + ch); ctx.closePath();
+  ctx.fillStyle = 'rgba(0,200,255,0.08)'; ctx.fill();
+  ctx.beginPath();
+  wpHistory.hums.forEach((h, i) => i === 0 ? ctx.moveTo(toX(i), toYH(h)) : ctx.lineTo(toX(i), toYH(h)));
+  ctx.strokeStyle = 'rgba(0,200,255,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Temp fill + line
+  ctx.beginPath();
+  wpHistory.temps.forEach((t, i) => i === 0 ? ctx.moveTo(toX(i), toYT(t)) : ctx.lineTo(toX(i), toYT(t)));
+  ctx.lineTo(toX(pts - 1), pad.t + ch); ctx.lineTo(toX(0), pad.t + ch); ctx.closePath();
+  ctx.fillStyle = 'rgba(255,170,0,0.1)'; ctx.fill();
+  ctx.beginPath();
+  wpHistory.temps.forEach((t, i) => i === 0 ? ctx.moveTo(toX(i), toYT(t)) : ctx.lineTo(toX(i), toYT(t)));
+  ctx.strokeStyle = 'rgba(255,170,0,0.9)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Latest dot
+  const lx = toX(pts - 1), ly = toYT(wpHistory.temps[pts - 1]);
+  ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffaa00'; ctx.fill();
+
+  // Y-axis labels
+  ctx.fillStyle = 'rgba(100,160,220,0.5)';
+  ctx.font = '10px Space Mono, monospace'; ctx.textAlign = 'right';
+  [tMin + 1, (tMin + tMax) / 2, tMax - 1].forEach(v =>
+    ctx.fillText(v.toFixed(0), pad.l - 4, toYT(v) + 4));
+
+  // X-axis time labels
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(pts / 5));
+  for (let i = 0; i < pts; i += step) {
+    const ts = new Date(wpHistory.times[i] * 1000);
+    ctx.fillText(
+      ts.getHours().toString().padStart(2,'0') + ':' + ts.getMinutes().toString().padStart(2,'0'),
+      toX(i), H - 5
+    );
+  }
+}
+window.addEventListener('resize', drawChart);
+
+/* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
+function renderSystems() {
+  if (!liveData) return;
+  const d = liveData;
+  const gc = d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
+  const gs = d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARN' : 'LIVE';
+  const gEl = document.getElementById('gas-card-status');
+  if (gEl) { gEl.textContent = gs; gEl.style.color = gc; }
+  const rEl = document.getElementById('rfid-card-status');
+  if (rEl) { rEl.textContent = d.rfidOnline ? 'LIVE' : 'OFFLINE'; rEl.style.color = d.rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
+}
 </script>
 </body>
 </html>
