@@ -308,12 +308,19 @@ body {
 .pg-logo {
   font-family:var(--font-main); font-weight:900;
   font-size:clamp(.8rem,3vw,.95rem);
-  letter-spacing:.2em; color:var(--c-glow);
+  letter-spacing:.2em;
+  background: linear-gradient(135deg, #fff 0%, #a0d8ff 40%, #00c8ff 70%, #0088cc 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter: drop-shadow(0 0 8px rgba(0,180,255,0.5)) drop-shadow(0 0 20px rgba(0,150,255,0.25));
 }
 .pg-clock {
   margin-left:auto;
   font-size:.6rem; letter-spacing:.15em;
-  color:var(--c-muted);
+  background: linear-gradient(135deg, #88ccff 0%, #00c8ff 50%, #00ffaa 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter: drop-shadow(0 0 6px rgba(0,200,255,0.4));
 }
 .back-btn {
   font-family:var(--font-main); font-size:.62rem;
