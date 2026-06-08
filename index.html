@@ -1401,7 +1401,7 @@ async function fetchData() {
 
     // Check if data is stale — older than 30 seconds
     const dataAge = (Date.now() - new Date(d.created_at).getTime()) / 1000;
-    d.weatherOnline = dataAge < 30;
+    d.weatherOnline = dataAge < 20;
 
     // Chart history
     const now = Math.floor(Date.now() / 1000);
