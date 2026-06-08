@@ -1784,12 +1784,13 @@ window.addEventListener('resize', drawChart);
 function renderSystems() {
   if (!liveData) return;
   const d = liveData;
-  const gc = d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
-  const gs = d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARN' : 'LIVE';
+  const rfidOnline = d.rfidOnline;
+  const gc = !rfidOnline ? 'var(--c-danger)' : d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
+  const gs = !rfidOnline ? 'OFFLINE' : d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARN' : 'LIVE';
   const gEl = document.getElementById('gas-card-status');
   if (gEl) { gEl.textContent = gs; gEl.style.color = gc; }
   const rEl = document.getElementById('rfid-card-status');
-  if (rEl) { rEl.textContent = d.rfidOnline ? 'LIVE' : 'OFFLINE'; rEl.style.color = d.rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
+  if (rEl) { rEl.textContent = rfidOnline ? 'LIVE' : 'OFFLINE'; rEl.style.color = rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
 }
 </script>
 </body>
