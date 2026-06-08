@@ -1477,18 +1477,18 @@ function showWarningPopup(warnHeat, warnHum, d) {
   }
 
   let title = '', body = '';
-  if (warnHeat && warnHum) {
-    title = 'HEAT & HUMIDITY';
-    body  = `Heat Index: <b style="color:#a0c0ff">${d.heatIndex.toFixed(1)}°C</b><br>Humidity: <b style="color:#ffcc44">${d.humidity.toFixed(1)}%</b>`;
-  } else if (warnHeat) {
-    title = 'HIGH HEAT INDEX';
-    body  = `Heat Index: <b style="color:#a0c0ff">${d.heatIndex.toFixed(1)}°C</b>`;
-  } else {
-    title = 'HIGH HUMIDITY';
-    body  = `Humidity: <b style="color:#a0c0ff">${d.humidity.toFixed(1)}%</b>`;
-  }
-
-  if (title !== lastWarnState) {
+    if (warnHeat && warnHum) {
+      title = 'HEAT & HUMIDITY';
+      body  = `Heat Index: <b style="color:#ffe066">${d.heatIndex.toFixed(1)}°C</b><br>Humidity: <b style="color:#ffe066">${d.humidity.toFixed(1)}%</b>`;
+    } else if (warnHeat) {
+      title = 'HIGH HEAT INDEX';
+      body  = `Heat Index: <b style="color:#ffe066">${d.heatIndex.toFixed(1)}°C</b><br>Humidity: <b style="color:#ffe066">${d.humidity.toFixed(1)}%</b>`;
+    } else {
+      title = 'HIGH HUMIDITY';
+      body  = `Heat Index: <b style="color:#ffe066">${d.heatIndex.toFixed(1)}°C</b><br>Humidity: <b style="color:#ffe066">${d.humidity.toFixed(1)}%</b>`;
+    }
+  
+    if (title !== lastWarnState) {
     warnDismissed = false;
     warnExpanded  = false;
     lastWarnState = title;
