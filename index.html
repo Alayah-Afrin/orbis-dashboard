@@ -1403,7 +1403,7 @@ async function fetchData() {
       lastAlert = alert;
       
       // Heat/humidity warning popup
-      const warnHeat = d.heatIndex >= 30;
+      const warnHeat = d.heatIndex >= 40.0;
       const warnHum  = d.humidity  >= 90.0;
       showWarningPopup(warnHeat, warnHum, d);
 
