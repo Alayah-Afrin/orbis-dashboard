@@ -1408,12 +1408,7 @@ async function fetchData() {
       showWarningPopup(warnHeat, warnHum, d);
 
     // Update card statuses
-    const rfidOnline = d.rfidOnline;
-    const gc = !rfidOnline ? 'var(--c-danger)' : d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
-    const gs = !rfidOnline ? 'OFFLINE' : d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARNING' : 'LIVE';
-    ['gas-card-status'].forEach(id => { const e = document.getElementById(id); if (e) { e.textContent = gs; e.style.color = gc; } });
-    const re = document.getElementById('rfid-card-status');
-    if (re) { re.textContent = rfidOnline ? 'LIVE' : 'OFFLINE'; re.style.color = rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
+    updateSystemStatus(d);
     document.getElementById('live-count').textContent = d.rfidOnline ? '3' : '2';
 
     // Update active pages
@@ -1780,17 +1775,21 @@ function drawChart() {
 }
 window.addEventListener('resize', drawChart);
 
-/* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
-function renderSystems() {
-  if (!liveData) return;
-  const d = liveData;
+function updateSystemStatus(d) {
   const rfidOnline = d.rfidOnline;
   const gc = !rfidOnline ? 'var(--c-danger)' : d.gas === 'DANGER' ? '#ff3a3a' : d.gas === 'WARNING' ? '#ffaa00' : 'var(--c-glow2)';
-  const gs = !rfidOnline ? 'OFFLINE' : d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARN' : 'LIVE';
+  const gs = !rfidOnline ? 'OFFLINE' : d.gas === 'DANGER' ? 'DANGER' : d.gas === 'WARNING' ? 'WARNING' : 'LIVE';
   const gEl = document.getElementById('gas-card-status');
   if (gEl) { gEl.textContent = gs; gEl.style.color = gc; }
   const rEl = document.getElementById('rfid-card-status');
   if (rEl) { rEl.textContent = rfidOnline ? 'LIVE' : 'OFFLINE'; rEl.style.color = rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
+  document.getElementById('live-count').textContent = rfidOnline ? '3' : '2';
+}
+  
+/* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
+function renderSystems() {
+  if (!liveData) return;
+  updateSystemStatus(liveData);
 }
 </script>
 </body>
