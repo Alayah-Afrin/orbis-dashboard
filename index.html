@@ -1357,7 +1357,7 @@ async function fetchData() {
       wpHistory.times.push(now);
       wpHistory.temps.push(d.temperature);
       wpHistory.hums.push(d.humidity);
-      if (wpHistory.times.length > 48) {
+      if (wpHistory.times.length > 120) {
         wpHistory.times.shift(); wpHistory.temps.shift(); wpHistory.hums.shift();
       }
     }
