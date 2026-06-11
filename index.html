@@ -1384,7 +1384,11 @@ function showDetail(sys) {
   currentDetailSys = sys;
   detailCameFrom = 'systems';
   showPage('detail');
-  fetchData().then(() => renderDetail(sys));
+  if (liveData) {
+    renderDetail(sys);
+  } else {
+    fetchData().then(() => renderDetail(sys));
+  }
 }
 
 /* ── FETCH ──────────────────────────────────────────────────────── */
@@ -1450,7 +1454,7 @@ async function fetchData() {
 }
 
 fetchData();
-setInterval(fetchData, 3000);
+setInterval(fetchData, 5000);
 
 /* ── BOOT (after DOM ready) ─────────────────────────────────────── */
 if (document.readyState === 'loading') {
