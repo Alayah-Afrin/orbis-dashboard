@@ -1646,6 +1646,19 @@ function renderDetail(sys) {
         ${card('Access', d.door === 'DENIED' ? 'DENIED' : d.door === 'OPEN' ? 'GRANTED' : 'LOCKED', '', '', dc)}
       </div>`;
   }
+
+  else if (sys === 'parking') {
+    titleEl.textContent = 'PARKING MONITOR';
+    const pc = d.parkingStatus === 'FULL' ? '#ff3a3a' : '#00ffaa';
+    document.getElementById('detail-body').innerHTML = `
+      <div class="section-label">Parking Status</div>
+      <div class="d-grid">
+        ${card('Slots Free', d.parkingSlots ?? '—', '', 'Available spaces', '#ffaa00')}
+        ${card('Status', d.parkingStatus ?? '—', '', '', pc)}
+        ${card('Capacity', '4', '', 'Total slots', 'var(--c-text)')}
+        ${card('Occupied', (4 - (d.parkingSlots ?? 0)), '', 'Cars parked', '#ffaa00')}
+      </div>`;
+  }
 }
 
 /* ── CINEMATIC ALL SYSTEMS ──────────────────────────────────────── */
@@ -1680,6 +1693,14 @@ function renderCinematic() {
       ${card('RFID', d.rfidOnline ? 'ONLINE' : 'OFFLINE', '', '', d.rfidOnline ? '#00ffaa' : '#ff3a3a')}
       ${card('Access', d.door === 'DENIED' ? 'DENIED' : d.door === 'OPEN' ? 'GRANTED' : 'LOCKED', '', '', dc)}
     </div>
+    
+    <div class="section-label">Parking Monitor</div>
+    <div class="d-grid">
+      ${card('Slots Free', d.parkingSlots ?? '—', '', d.parkingStatus === 'FULL' ? 'Parking Full' : 'Spaces Available', '#ffaa00')}
+      ${card('Status', d.parkingStatus ?? '—', '', '', d.parkingStatus === 'FULL' ? '#ff3a3a' : '#00ffaa')}
+      ${card('Parking', d.parkingOnline ? 'ONLINE' : 'OFFLINE', '', '', d.parkingOnline ? '#00ffaa' : '#ff3a3a')}
+    </div>
+    
     <div class="view-all-link" onclick="openWeatherCinematic()" style="margin-top:6px">VIEW CINEMATIC WEATHER →</div>`;
 }
 
