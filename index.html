@@ -1384,7 +1384,11 @@ function showDetail(sys) {
   currentDetailSys = sys;
   detailCameFrom = 'systems';
   showPage('detail');
-  renderDetail(sys);
+  if (liveData) {
+    renderDetail(sys);
+  } else {
+    fetchData().then(() => renderDetail(sys));
+  }
 }
 
 /* ── FETCH ──────────────────────────────────────────────────────── */
@@ -1440,8 +1444,7 @@ async function fetchData() {
 
     // Update card statuses
     updateSystemStatus(d);
-    document.getElementById('live-count').textContent = d.rfidOnline ? '3' : '2';
-
+    
     // Update active pages
     if (!document.getElementById('page-detail').classList.contains('hidden')) renderDetail(currentDetailSys);
     if (!document.getElementById('page-cinematic').classList.contains('hidden')) renderCinematic();
