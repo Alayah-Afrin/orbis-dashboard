@@ -937,7 +937,7 @@ body {
     <div class="orbis-tagline">Intelligent Living System</div>
     <div class="stats-row">
       <div class="stat-item">
-        <div class="stat-val">3</div>
+        <div class="stat-val">4</div>
         <div class="stat-key">Systems</div>
       </div>
       <div class="stat-item">
@@ -1019,6 +1019,15 @@ body {
 
       <div class="view-all-link" onclick="showPage('cinematic')">VIEW ALL SYSTEMS DASHBOARD →</div>
     </div>
+    <div class="sys-card" style="--card-accent:rgba(255,170,0,.35)" onclick="showDetail('parking')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#ffaa00;box-shadow:0 0 8px #ffaa00"></div>
+          <div class="card-name">PARKING MONITOR</div>
+          <div class="card-status" id="parking-card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">Slots Available · Gate Status · Occupancy</div>
+        <div class="card-arrow">›</div>
+      </div>
   </div>
 </div>
 
@@ -1398,6 +1407,9 @@ async function fetchData() {
     d.sensorOk     = d.sensor_ok     ?? d.sensorOk;
     d.rfidOnline   = d.rfid_online   ?? d.rfidOnline;
     liveData = d;
+    d.parkingSlots  = d.parking_slots  ?? d.parkingSlots;
+    d.parkingStatus = d.parking_status ?? d.parkingStatus;
+    d.parkingOnline = d.parking_online ?? d.parkingOnline;
 
     // Check if data is stale — older than 30 seconds
     const dataAge = (Date.now() - new Date(d.created_at).getTime()) / 1000;
@@ -1807,7 +1819,12 @@ function updateSystemStatus(d) {
   if (rEl) { rEl.textContent = rfidOnline ? 'LIVE' : 'OFFLINE'; rEl.style.color = rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
   const wEl = document.getElementById('weather-card-status');
   if (wEl) { wEl.textContent = weatherOnline ? 'LIVE' : 'OFFLINE'; wEl.style.color = weatherOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
-  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0);
+  const pEl = document.getElementById('parking-card-status');
+  if (pEl) {
+    pEl.textContent = !d.parkingOnline ? 'OFFLINE' : d.parkingStatus === 'FULL' ? 'FULL' : 'LIVE';
+    pEl.style.color = !d.parkingOnline ? 'var(--c-danger)' : d.parkingStatus === 'FULL' ? 'var(--c-warn)' : 'var(--c-glow2)';
+  }
+  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0);
   document.getElementById('live-count').textContent = onlineCount;
 }
   
