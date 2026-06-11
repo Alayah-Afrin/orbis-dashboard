@@ -1807,7 +1807,7 @@ function updateSystemStatus(d) {
   if (rEl) { rEl.textContent = rfidOnline ? 'LIVE' : 'OFFLINE'; rEl.style.color = rfidOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
   const wEl = document.getElementById('weather-card-status');
   if (wEl) { wEl.textContent = weatherOnline ? 'LIVE' : 'OFFLINE'; wEl.style.color = weatherOnline ? 'var(--c-glow2)' : 'var(--c-danger)'; }
-  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 2 : 0);
+  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0);
   document.getElementById('live-count').textContent = onlineCount;
 }
   
