@@ -937,7 +937,7 @@ body {
     <div class="orbis-tagline">Intelligent Living System</div>
     <div class="stats-row">
       <div class="stat-item">
-        <div class="stat-val">6</div>
+        <div class="stat-val">7</div>
         <div class="stat-key">Systems</div>
       </div>
       <div class="stat-item">
@@ -1042,6 +1042,16 @@ body {
           <div class="card-status" id="traffic-card-status" style="color:var(--c-glow2)">LIVE</div>
         </div>
         <div class="card-desc">Phase · Direction · Signal State · Time Left</div>
+        <div class="card-arrow">›</div>
+      </div>
+
+      <div class="sys-card" style="--card-accent:rgba(255,220,0,.35)" onclick="showPage('solar')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#ffdd00;box-shadow:0 0 8px #ffdd00"></div>
+          <div class="card-name">SOLAR TRACKER</div>
+          <div class="card-status" id="solar-card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">Panel Angle · LDR Sensors · PID Control · Auto/Night Mode</div>
         <div class="card-arrow">›</div>
       </div>
       
@@ -1385,8 +1395,8 @@ tick();
 setInterval(tick, 1000);
 
 /* ── PAGE NAVIGATION ────────────────────────────────────────────── */
-const pages = ['landing','systems','detail','cinematic','weather'];
-
+const pages = ['landing','systems','detail','cinematic','weather','solar'];
+  
 function showPage(name) {
   if (!liveData) fetchData();
   if (name === 'detail-back') {
@@ -1443,6 +1453,14 @@ async function fetchData() {
     d.trafficPhase  = d.traffic_phase  ?? d.trafficPhase;
     d.trafficDir    = d.traffic_dir    ?? d.trafficDir;
     d.trafficTime   = d.traffic_time   ?? d.trafficTime;
+    d.solarLeft   = d.solar_left   ?? d.solarLeft;
+    d.solarRight  = d.solar_right  ?? d.solarRight;
+    d.solarAngle  = d.solar_angle  ?? d.solarAngle;
+    d.solarError  = d.solar_error  ?? d.solarError;
+    d.solarMode   = d.solar_mode   ?? d.solarMode;
+    d.solarOnline = d.solar_online ?? d.solarOnline;
+
+    
     localTrafficTime = d.trafficTime ?? 0;
     if (trafficTimerInterval) clearInterval(trafficTimerInterval);
     if (d.trafficOnline && d.trafficState !== 'RED') {
@@ -1500,6 +1518,7 @@ async function fetchData() {
     if (!document.getElementById('page-detail').classList.contains('hidden')) renderDetail(currentDetailSys);
     if (!document.getElementById('page-cinematic').classList.contains('hidden')) renderCinematic();
     if (!document.getElementById('page-weather').classList.contains('hidden')) updateWeatherPage();
+    if (!document.getElementById('page-solar').classList.contains('hidden')) updateSolarPage();
 
   } catch (e) { /* silent */ }
 }
@@ -1852,6 +1871,15 @@ function renderCinematic() {
       ${card('Time Left', d.trafficTime ?? '—', 's', 'of ' + (d.trafficTotal ?? '—') + 's', '#ffaa00', d.trafficTime && d.trafficTotal ? (d.trafficTime / d.trafficTotal * 100) : 0, '#ffaa00')}
       ${card('Traffic', d.trafficOnline ? 'ONLINE' : 'OFFLINE', '', '', d.trafficOnline ? '#00ffaa' : '#ff3a3a')}
     </div>
+
+    <div class="section-label">Solar Tracker</div>
+    <div class="d-grid">
+      ${card('Angle', (d.solarAngle ?? 0).toFixed(1), '°', d.solarAngle < 90 ? 'Tilted West' : d.solarAngle > 90 ? 'Tilted East' : 'Centered', '#ffdd00')}
+      ${card('Mode', d.solarMode ?? '—', '', '', d.solarMode === 'NIGHT' ? 'var(--c-muted)' : '#ffdd00')}
+      ${card('Left LDR', d.solarLeft ?? '—', '', '', '#ffdd00')}
+      ${card('Right LDR', d.solarRight ?? '—', '', '', '#00c8ff')}
+      ${card('Solar', d.solarOnline ? 'ONLINE' : 'OFFLINE', '', '', d.solarOnline ? '#00ffaa' : '#ff3a3a')}
+    </div>
     
     <div class="view-all-link" onclick="openWeatherCinematic()" style="margin-top:6px">VIEW CINEMATIC WEATHER →</div>`;
 }
@@ -2007,15 +2035,149 @@ const trEl = document.getElementById('traffic-card-status');
     trEl.textContent = !d.trafficOnline ? 'OFFLINE' : d.trafficState ?? 'LIVE';
     trEl.style.color = !d.trafficOnline ? 'var(--c-danger)' : tc;
   }
+  const solEl = document.getElementById('solar-card-status');
+  if (solEl) {
+    solEl.textContent = !d.solarOnline ? 'OFFLINE' : d.solarMode === 'NIGHT' ? 'NIGHT' : 'TRACKING';
+    solEl.style.color = !d.solarOnline ? 'var(--c-danger)' : d.solarMode === 'NIGHT' ? 'var(--c-muted)' : '#ffdd00';
+  }
 const gasOnline = rfidOnline; // gas and rfid share same ESP32
-const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (gasOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0);
-  document.getElementById('live-count').textContent = onlineCount;
+const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (gasOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0) + (d.solarOnline ? 1 : 0);  document.getElementById('live-count').textContent = onlineCount;
 }  
+
+function updateSolarPage() {
+  const d = liveData;
+  if (!d) return;
+  const isNight = d.solarMode === 'NIGHT';
+  const mc = isNight ? 'rgba(100,160,220,0.5)' : '#ffdd00';
+  const angle = d.solarAngle ?? 90;
+  const leftPct = Math.min((d.solarLeft ?? 0) / 1023 * 100, 100);
+  const rightPct = Math.min((d.solarRight ?? 0) / 1023 * 100, 100);
+  const needleAngle = angle - 90; // -70 to +70 degrees from center
+
+  document.getElementById('solar-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;font-size:.62rem;color:var(--c-muted);margin-bottom:18px;flex-wrap:wrap;">
+      <div style="width:6px;height:6px;border-radius:50%;background:${mc};animation:pipBlink 2s infinite;box-shadow:0 0 6px ${mc}"></div>
+      <span style="color:${mc};font-family:var(--font-main);font-size:.65rem;letter-spacing:.1em">${isNight ? 'NIGHT MODE' : 'TRACKING'}</span>
+      <span style="margin-left:auto;font-size:.58rem">Sync: ${new Date().toTimeString().slice(0,8)}</span>
+    </div>
+
+    <!-- Hero angle display -->
+    <div style="background:var(--c-panel);border:1px solid var(--c-border);border-top:2px solid ${mc};border-radius:var(--radius);padding:clamp(16px,4vw,22px);position:relative;overflow:hidden;margin-bottom:14px;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${mc},transparent);animation:scanLine 3s linear infinite;"></div>
+      <div style="font-size:.6rem;letter-spacing:.28em;color:var(--c-muted);margin-bottom:6px;">PANEL ANGLE</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;">
+        <div style="font-family:var(--font-main);font-weight:900;font-size:clamp(2.8rem,11vw,4.5rem);color:${mc};line-height:1;">${angle.toFixed(1)}</div>
+        <div style="font-size:1.4rem;color:var(--c-muted);margin-bottom:8px;">°</div>
+      </div>
+      <div style="font-size:.6rem;letter-spacing:.2em;color:var(--c-muted);margin-top:4px;">${angle < 90 ? 'TILTED WEST' : angle > 90 ? 'TILTED EAST' : 'CENTERED'}</div>
+      <div style="display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid ${mc};border-radius:2px;font-size:.65rem;color:${mc};letter-spacing:.1em;font-family:var(--font-main);">${d.solarMode ?? 'AUTO'}</div>
+    </div>
+
+    <!-- Arc visualization -->
+    <div style="background:var(--c-panel);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;">
+      <div style="font-size:.58rem;letter-spacing:.3em;color:var(--c-muted);text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--c-border);width:100%;text-align:left;">Panel Position</div>
+      <svg viewBox="0 0 280 160" width="100%" style="max-width:320px;">
+        <!-- Ground line -->
+        <line x1="20" y1="140" x2="260" y2="140" stroke="rgba(0,200,255,0.15)" stroke-width="1"/>
+        <!-- Arc track -->
+        <path d="M 30 140 A 110 110 0 0 1 250 140" fill="none" stroke="rgba(0,200,255,0.12)" stroke-width="2" stroke-dasharray="4,4"/>
+        <!-- Active arc fill -->
+        <path d="M 140 140 A 110 110 0 0 1 250 140" fill="none" stroke="rgba(255,220,0,0.08)" stroke-width="8"/>
+        <!-- Angle markers -->
+        <text x="22" y="155" fill="rgba(100,160,220,0.4)" font-size="9" font-family="Orbitron,monospace">20°</text>
+        <text x="126" y="25" fill="rgba(100,160,220,0.4)" font-size="9" font-family="Orbitron,monospace" text-anchor="middle">90°</text>
+        <text x="245" y="155" fill="rgba(100,160,220,0.4)" font-size="9" font-family="Orbitron,monospace">160°</text>
+        <!-- Center vertical guide -->
+        <line x1="140" y1="30" x2="140" y2="140" stroke="rgba(0,200,255,0.08)" stroke-width="1" stroke-dasharray="3,3"/>
+        <!-- Sun position indicators -->
+        <text x="40" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">WEST</text>
+        <text x="220" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">EAST</text>
+        <!-- Panel needle — rotates based on angle -->
+        ${(() => {
+          const rad = (angle / 180) * Math.PI;
+          const len = 90;
+          const cx = 140, cy = 140;
+          const ex = cx - Math.cos(Math.PI - rad) * len;
+          const ey = cy - Math.sin(Math.PI - rad) * len;
+          const wx1 = cx - Math.cos(Math.PI - rad + 0.15) * 18;
+          const wy1 = cy - Math.sin(Math.PI - rad + 0.15) * 18;
+          const wx2 = cx - Math.cos(Math.PI - rad - 0.15) * 18;
+          const wy2 = cy - Math.sin(Math.PI - rad - 0.15) * 18;
+          return `
+            <line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${mc}" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="${ex},${ey} ${wx1},${wy1} ${wx2},${wy2}" fill="${mc}" opacity="0.9"/>
+            <line x1="${cx - 20}" y1="${cy}" x2="${cx + 20}" y2="${cy}" stroke="rgba(0,200,255,0.3)" stroke-width="2"/>
+            <circle cx="${cx}" cy="${cy}" r="6" fill="${mc}" opacity="0.9"/>
+            <circle cx="${cx}" cy="${cy}" r="3" fill="rgba(255,255,255,0.8)"/>
+            <circle cx="${ex}" cy="${ey}" r="4" fill="${mc}" opacity="0.6"/>
+          `;
+        })()}
+        <!-- Glow under needle tip -->
+        <circle cx="${140 - Math.cos(Math.PI - (angle/180)*Math.PI) * 90}" cy="${140 - Math.sin(Math.PI - (angle/180)*Math.PI) * 90}" r="8" fill="${mc}" opacity="0.1"/>
+      </svg>
+    </div>
+
+    <!-- LDR comparison bars -->
+    <div style="background:var(--c-panel);border:1px solid var(--c-border);border-radius:var(--radius);padding:clamp(14px,3vw,18px);margin-bottom:14px;">
+      <div style="font-size:.58rem;letter-spacing:.3em;color:var(--c-muted);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--c-border);">Light Sensors</div>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--c-muted);margin-bottom:4px;">
+          <span>LEFT LDR</span><span style="color:${mc}">${d.solarLeft ?? 0}</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${leftPct}%;background:linear-gradient(90deg,${mc},rgba(255,220,0,0.4));border-radius:3px;transition:width 1s ease;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--c-muted);margin-bottom:4px;">
+          <span>RIGHT LDR</span><span style="color:#00c8ff">${d.solarRight ?? 0}</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${rightPct}%;background:linear-gradient(90deg,#00c8ff,rgba(0,200,255,0.4));border-radius:3px;transition:width 1s ease;"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:.58rem;color:var(--c-muted);">
+        Sun offset: <span style="color:${mc}">${Math.abs(d.solarError ?? 0).toFixed(1)}</span> 
+        ${(d.solarError ?? 0) > 0 ? '← tracking left' : (d.solarError ?? 0) < 0 ? '→ tracking right' : '✓ balanced'}
+      </div>
+    </div>
+
+    <!-- Data cards -->
+    <div class="d-grid">
+      ${card('Panel Angle', angle.toFixed(1), '°', angle < 90 ? 'Tilted West' : angle > 90 ? 'Tilted East' : 'Centered', mc)}
+      ${card('PID Error', Math.abs(d.solarError ?? 0).toFixed(1), '', 'Tracking offset', '#00c8ff')}
+      ${card('Mode', d.solarMode ?? '—', '', isNight ? 'Parked at 90°' : 'Active tracking', mc)}
+      ${card('Left LDR', d.solarLeft ?? '—', '', `${leftPct.toFixed(0)}% intensity`, mc, leftPct, mc)}
+      ${card('Right LDR', d.solarRight ?? '—', '', `${rightPct.toFixed(0)}% intensity`, '#00c8ff', rightPct, '#00c8ff')}
+      ${card('Status', d.solarOnline ? 'ONLINE' : 'OFFLINE', '', 'Arduino Solar', d.solarOnline ? '#00ffaa' : '#ff3a3a')}
+    </div>
+    <div class="page-footer">ORBIS · SOLAR TRACKER · ARDUINO + PID · <span class="blink">●</span> ${d.solarOnline ? 'ONLINE' : 'OFFLINE'}</div>
+  `;
+}
+  
+  
 /* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
 function renderSystems() {
   if (!liveData) return;
   updateSystemStatus(liveData);
 }
 </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+     SOLAR TRACKER CINEMATIC PAGE
+════════════════════════════════════════════════════════════════ -->
+<div id="page-solar" class="page hidden">
+  <div class="pg-header">
+    <button class="back-btn" onclick="showPage('systems')">← BACK</button>
+    <div class="pg-logo">SOLAR TRACKER</div>
+    <div class="detail-live-dot"></div>
+  </div>
+  <div class="page-scroll">
+    <div class="pg-body">
+      <div id="solar-body"><div class="loading">Connecting</div></div>
+    </div>
+  </div>
+</div>
+  
 </body>
 </html>
