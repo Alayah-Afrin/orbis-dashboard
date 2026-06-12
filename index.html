@@ -1172,6 +1172,8 @@ let dialShown = false;
 let wpHistory = { times:[], temps:[], hums:[] };
 let currentDetailSys = 'weather';
 let detailCameFrom = 'systems';
+let trafficTimerInterval = null;
+let localTrafficTime = 0;
 
 /* ── AURORA ─────────────────────────────────────────────────────── */
 function initAurora() {
@@ -1441,6 +1443,21 @@ async function fetchData() {
     d.trafficPhase  = d.traffic_phase  ?? d.trafficPhase;
     d.trafficDir    = d.traffic_dir    ?? d.trafficDir;
     d.trafficTime   = d.traffic_time   ?? d.trafficTime;
+    localTrafficTime = d.trafficTime ?? 0;
+    if (trafficTimerInterval) clearInterval(trafficTimerInterval);
+    if (d.trafficOnline && d.trafficState !== 'RED') {
+      trafficTimerInterval = setInterval(() => {
+        if (localTrafficTime > 0) {
+          localTrafficTime--;
+          liveData.trafficTime = localTrafficTime;
+          // Update only the time display without full re-render
+          const el = document.getElementById('traffic-time-live');
+          if (el) el.textContent = localTrafficTime;
+        } else {
+          clearInterval(trafficTimerInterval);
+        }
+      }, 1000);
+    }
     d.trafficState  = d.traffic_state  ?? d.trafficState;
     d.trafficTotal  = d.traffic_total  ?? d.trafficTotal;
     d.trafficOnline = d.traffic_online ?? d.trafficOnline;
@@ -1718,8 +1735,7 @@ function renderDetail(sys) {
         ${card('Phase', d.trafficPhase ? 'PHASE ' + d.trafficPhase : 'ALL RED', '', '', tc)}
         ${card('Direction', d.trafficDir ?? '—', '', 'Active lane', '#00c8ff')}
         ${card('Signal', d.trafficState ?? '—', '', '', tc)}
-        ${card('Time Left', d.trafficTime ?? '—', 's', 'of ' + (d.trafficTotal ?? '—') + 's total', '#ffaa00', pct, '#ffaa00')}
-      </div>
+${card('Time Left', `<span id="traffic-time-live">${d.trafficTime ?? '—'}</span>`, 's', 'of ' + (d.trafficTotal ?? '—') + 's total', '#ffaa00', pct, '#ffaa00')}      </div>
       <div class="section-label">Live Direction</div>
       <div style="display:flex;justify-content:center;padding:20px 0;">
         <svg id="traffic-compass" viewBox="0 0 200 200" width="200" height="200">
