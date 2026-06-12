@@ -1451,8 +1451,12 @@ async function fetchData() {
           localTrafficTime--;
           liveData.trafficTime = localTrafficTime;
           // Update only the time display without full re-render
-          const el = document.getElementById('traffic-time-live');
+         const el = document.getElementById('traffic-time-live');
           if (el) el.textContent = localTrafficTime;
+          const bar = document.getElementById('traffic-time-bar');
+          if (bar && liveData && liveData.trafficTotal) {
+            bar.style.width = Math.min(Math.round(localTrafficTime / liveData.trafficTotal * 100), 100) + '%';
+          }
         } else {
           clearInterval(trafficTimerInterval);
         }
@@ -1735,7 +1739,13 @@ function renderDetail(sys) {
         ${card('Phase', d.trafficPhase ? 'PHASE ' + d.trafficPhase : 'ALL RED', '', '', tc)}
         ${card('Direction', d.trafficDir ?? '—', '', 'Active lane', '#00c8ff')}
         ${card('Signal', d.trafficState ?? '—', '', '', tc)}
-${card('Time Left', `<span id="traffic-time-live">${d.trafficTime ?? '—'}</span>`, 's', 'of ' + (d.trafficTotal ?? '—') + 's total', '#ffaa00', pct, '#ffaa00')}      </div>
+        <div class="d-card">
+          <div class="d-lbl">Time Left</div>
+          <div class="d-val" style="color:#ffaa00"><span id="traffic-time-live">${d.trafficTime ?? '—'}</span><span class="d-unit">s</span></div>
+          <div class="d-sub">of ${d.trafficTotal ?? '—'}s total</div>
+          <div class="d-bar"><div class="d-bar-fill" id="traffic-time-bar" style="width:${pct}%;background:#ffaa00;transition:width 1s linear"></div></div>
+        </div>
+      </div>
       <div class="section-label">Live Direction</div>
       <div style="display:flex;justify-content:center;padding:20px 0;">
         <svg id="traffic-compass" viewBox="0 0 200 200" width="200" height="200">
