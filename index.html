@@ -937,7 +937,7 @@ body {
     <div class="orbis-tagline">Intelligent Living System</div>
     <div class="stats-row">
       <div class="stat-item">
-        <div class="stat-val">4</div>
+        <div class="stat-val">5</div>
         <div class="stat-key">Systems</div>
       </div>
       <div class="stat-item">
@@ -1025,6 +1025,16 @@ body {
         <div class="card-desc">Slots Available · Gate Status · Occupancy</div>
         <div class="card-arrow">›</div>
       </div>
+      <div class="sys-card" style="--card-accent:rgba(0,255,160,.35)" onclick="showDetail('trash')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#00ffaa;box-shadow:0 0 8px #00ffaa"></div>
+          <div class="card-name">SMART BIN</div>
+          <div class="card-status" id="trash-card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">Fill Level · Depth · Lid Status · Auto Alert</div>
+        <div class="card-arrow">›</div>
+      </div>
+      
       <div class="view-all-link" onclick="showPage('cinematic')">VIEW ALL SYSTEMS DASHBOARD →</div>
     </div>
   </div>
@@ -1413,6 +1423,11 @@ async function fetchData() {
     d.parkingSlots  = d.parking_slots  ?? d.parkingSlots;
     d.parkingStatus = d.parking_status ?? d.parkingStatus;
     d.parkingOnline = d.parking_online ?? d.parkingOnline;
+    d.trashFill   = d.trash_fill   ?? d.trashFill;
+    d.trashDepth  = d.trash_depth  ?? d.trashDepth;
+    d.trashLid    = d.trash_lid    ?? d.trashLid;
+    d.trashStatus = d.trash_status ?? d.trashStatus;
+    d.trashOnline = d.trash_online ?? d.trashOnline;
 
     // Check if data is stale — older than 30 seconds
     const dataAge = (Date.now() - new Date(d.created_at).getTime()) / 1000;
@@ -1662,6 +1677,21 @@ function renderDetail(sys) {
         ${card('Occupied', (4 - (d.parkingSlots ?? 0)), '', 'Cars parked', '#ffaa00')}
       </div>`;
   }
+
+  else if (sys === 'trash') {
+    titleEl.textContent = 'SMART BIN';
+    const tc = d.trashStatus === 'FULL' ? '#ff3a3a' : '#00ffaa';
+    document.getElementById('detail-body').innerHTML = `
+      <div class="section-label">Bin Status</div>
+      <div class="d-grid">
+        ${card('Fill Level', d.trashFill ?? '—', '%', 'Current fill', d.trashFill >= 90 ? '#ff3a3a' : '#00ffaa', d.trashFill, d.trashFill >= 90 ? '#ff3a3a' : '#00ffaa')}
+        ${card('Depth', d.trashDepth ?? '—', 'cm', 'Distance to trash', '#00c8ff')}
+        ${card('Lid', d.trashLid ?? '—', '', '', d.trashLid === 'OPEN' ? '#ffaa00' : '#00ffaa')}
+        ${card('Status', d.trashStatus ?? '—', '', '', tc)}
+        ${card('Capacity', '9', 'cm', 'Empty distance', 'var(--c-text)')}
+        ${card('Full At', '2', 'cm', 'Full distance', 'var(--c-text)')}
+      </div>`;
+  }
 }
 
 /* ── CINEMATIC ALL SYSTEMS ──────────────────────────────────────── */
@@ -1703,6 +1733,15 @@ function renderCinematic() {
       ${card('Status', d.parkingStatus ?? '—', '', '', d.parkingStatus === 'FULL' ? '#ff3a3a' : '#00ffaa')}
       ${card('Parking', d.parkingOnline ? 'ONLINE' : 'OFFLINE', '', '', d.parkingOnline ? '#00ffaa' : '#ff3a3a')}
     </div>
+    
+    <div class="section-label">Smart Bin</div>
+    <div class="d-grid">
+      ${card('Fill Level', d.trashFill ?? '—', '%', '', d.trashFill >= 90 ? '#ff3a3a' : '#00ffaa', d.trashFill, d.trashFill >= 90 ? '#ff3a3a' : '#00ffaa')}
+      ${card('Depth', d.trashDepth ?? '—', 'cm', '', '#00c8ff')}
+      ${card('Lid', d.trashLid ?? '—', '', '', d.trashLid === 'OPEN' ? '#ffaa00' : '#00ffaa')}
+      ${card('Status', d.trashStatus ?? '—', '', '', d.trashStatus === 'FULL' ? '#ff3a3a' : '#00ffaa')}
+    </div>
+    
     
     <div class="view-all-link" onclick="openWeatherCinematic()" style="margin-top:6px">VIEW CINEMATIC WEATHER →</div>`;
 }
@@ -1847,7 +1886,12 @@ function updateSystemStatus(d) {
     pEl.textContent = !d.parkingOnline ? 'OFFLINE' : d.parkingStatus === 'FULL' ? 'FULL' : 'LIVE';
     pEl.style.color = !d.parkingOnline ? 'var(--c-danger)' : d.parkingStatus === 'FULL' ? 'var(--c-warn)' : 'var(--c-glow2)';
   }
-  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0);
+  const tEl = document.getElementById('trash-card-status');
+  if (tEl) {
+    tEl.textContent = !d.trashOnline ? 'OFFLINE' : d.trashStatus === 'FULL' ? 'FULL' : 'LIVE';
+    tEl.style.color = !d.trashOnline ? 'var(--c-danger)' : d.trashStatus === 'FULL' ? 'var(--c-warn)' : 'var(--c-glow2)';
+  }
+  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0);
   document.getElementById('live-count').textContent = onlineCount;
 }
   
