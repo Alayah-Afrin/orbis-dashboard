@@ -937,7 +937,7 @@ body {
     <div class="orbis-tagline">Intelligent Living System</div>
     <div class="stats-row">
       <div class="stat-item">
-        <div class="stat-val">5</div>
+        <div class="stat-val">6</div>
         <div class="stat-key">Systems</div>
       </div>
       <div class="stat-item">
@@ -1032,6 +1032,16 @@ body {
           <div class="card-status" id="trash-card-status" style="color:var(--c-glow2)">LIVE</div>
         </div>
         <div class="card-desc">Fill Level · Depth · Lid Status · Auto Alert</div>
+        <div class="card-arrow">›</div>
+      </div>
+
+      <div class="sys-card" style="--card-accent:rgba(255,170,0,.35)" onclick="showDetail('traffic')">
+        <div class="card-header">
+          <div class="card-dot" style="background:#ffaa00;box-shadow:0 0 8px #ffaa00"></div>
+          <div class="card-name">TRAFFIC CONTROL</div>
+          <div class="card-status" id="traffic-card-status" style="color:var(--c-glow2)">LIVE</div>
+        </div>
+        <div class="card-desc">Phase · Direction · Signal State · Time Left</div>
         <div class="card-arrow">›</div>
       </div>
       
@@ -1428,7 +1438,12 @@ async function fetchData() {
     d.trashLid    = d.trash_lid    ?? d.trashLid;
     d.trashStatus = d.trash_status ?? d.trashStatus;
     d.trashOnline = d.trash_online ?? d.trashOnline;
-
+    d.trafficPhase  = d.traffic_phase  ?? d.trafficPhase;
+    d.trafficDir    = d.traffic_dir    ?? d.trafficDir;
+    d.trafficTime   = d.traffic_time   ?? d.trafficTime;
+    d.trafficState  = d.traffic_state  ?? d.trafficState;
+    d.trafficTotal  = d.traffic_total  ?? d.trafficTotal;
+    d.trafficOnline = d.traffic_online ?? d.trafficOnline;
     // Check if data is stale — older than 30 seconds
     const dataAge = (Date.now() - new Date(d.created_at).getTime()) / 1000;
     d.weatherOnline = dataAge < 20;
@@ -1692,6 +1707,46 @@ function renderDetail(sys) {
         ${card('Full At', '2', 'cm', 'Full distance', 'var(--c-text)')}
       </div>`;
   }
+
+  else if (sys === 'traffic') {
+    titleEl.textContent = 'TRAFFIC CONTROL';
+    const tc = d.trafficState === 'GREEN' ? '#00ffaa' : d.trafficState === 'AMBER' ? '#ffaa00' : '#ff3a3a';
+    const pct = d.trafficTime && d.trafficTotal ? Math.round(d.trafficTime / d.trafficTotal * 100) : 0;
+    document.getElementById('detail-body').innerHTML = `
+      <div class="section-label">Signal Status</div>
+      <div class="d-grid">
+        ${card('Phase', d.trafficPhase ? 'PHASE ' + d.trafficPhase : 'ALL RED', '', '', tc)}
+        ${card('Direction', d.trafficDir ?? '—', '', 'Active lane', '#00c8ff')}
+        ${card('Signal', d.trafficState ?? '—', '', '', tc)}
+        ${card('Time Left', d.trafficTime ?? '—', 's', 'of ' + (d.trafficTotal ?? '—') + 's total', '#ffaa00', pct, '#ffaa00')}
+      </div>
+      <div class="section-label">Compass</div>
+      <div style="display:flex;justify-content:center;padding:20px 0;">
+        <div style="position:relative;width:160px;height:160px;">
+          <svg viewBox="0 0 160 160" width="160" height="160">
+            <circle cx="80" cy="80" r="78" fill="none" stroke="rgba(0,200,255,0.15)" stroke-width="1"/>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(0,200,255,0.08)" stroke-width="1"/>
+            <text x="80" y="16" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">N</text>
+            <text x="80" y="152" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">S</text>
+            <text x="148" y="84" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">E</text>
+            <text x="12" y="84" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">W</text>
+            ${d.trafficDir === 'N + S' ? `
+              <line x1="80" y1="25" x2="80" y2="135" stroke="${tc}" stroke-width="3" stroke-linecap="round"/>
+              <polygon points="80,18 74,30 86,30" fill="${tc}"/>
+              <polygon points="80,142 74,130 86,130" fill="${tc}"/>
+            ` : d.trafficDir === 'E + W' ? `
+              <line x1="25" y1="80" x2="135" y2="80" stroke="${tc}" stroke-width="3" stroke-linecap="round"/>
+              <polygon points="142,80 130,74 130,86" fill="${tc}"/>
+              <polygon points="18,80 30,74 30,86" fill="${tc}"/>
+            ` : `
+              <circle cx="80" cy="80" r="8" fill="#ff3a3a"/>
+            `}
+            <circle cx="80" cy="80" r="5" fill="rgba(0,200,255,0.4)"/>
+          </svg>
+        </div>
+      </div>`;
+  }
+  
 }
 
 /* ── CINEMATIC ALL SYSTEMS ──────────────────────────────────────── */
@@ -1741,7 +1796,16 @@ function renderCinematic() {
       ${card('Lid', d.trashLid ?? '—', '', '', d.trashLid === 'OPEN' ? '#ffaa00' : '#00ffaa')}
       ${card('Status', d.trashStatus ?? '—', '', '', d.trashStatus === 'FULL' ? '#ff3a3a' : '#00ffaa')}
     </div>
-    
+
+
+    <div class="section-label">Traffic Control</div>
+    <div class="d-grid">
+      ${card('Phase', d.trafficPhase ? 'PHASE ' + d.trafficPhase : 'ALL RED', '', d.trafficDir ?? '—', d.trafficState === 'GREEN' ? '#00ffaa' : d.trafficState === 'AMBER' ? '#ffaa00' : '#ff3a3a')}
+      ${card('Direction', d.trafficDir ?? '—', '', '', '#00c8ff')}
+      ${card('Signal', d.trafficState ?? '—', '', '', d.trafficState === 'GREEN' ? '#00ffaa' : d.trafficState === 'AMBER' ? '#ffaa00' : '#ff3a3a')}
+      ${card('Time Left', d.trafficTime ?? '—', 's', 'of ' + (d.trafficTotal ?? '—') + 's', '#ffaa00', d.trafficTime && d.trafficTotal ? (d.trafficTime / d.trafficTotal * 100) : 0, '#ffaa00')}
+      ${card('Traffic', d.trafficOnline ? 'ONLINE' : 'OFFLINE', '', '', d.trafficOnline ? '#00ffaa' : '#ff3a3a')}
+    </div>
     
     <div class="view-all-link" onclick="openWeatherCinematic()" style="margin-top:6px">VIEW CINEMATIC WEATHER →</div>`;
 }
@@ -1891,8 +1955,13 @@ function updateSystemStatus(d) {
     tEl.textContent = !d.trashOnline ? 'OFFLINE' : d.trashStatus === 'FULL' ? 'FULL' : 'LIVE';
     tEl.style.color = !d.trashOnline ? 'var(--c-danger)' : d.trashStatus === 'FULL' ? 'var(--c-warn)' : 'var(--c-glow2)';
   }
-  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0);
-  document.getElementById('live-count').textContent = onlineCount;
+const trEl = document.getElementById('traffic-card-status');
+  if (trEl) {
+    const tc = d.trafficState === 'GREEN' ? 'var(--c-glow2)' : d.trafficState === 'AMBER' ? 'var(--c-warn)' : 'var(--c-danger)';
+    trEl.textContent = !d.trafficOnline ? 'OFFLINE' : d.trafficState ?? 'LIVE';
+    trEl.style.color = !d.trafficOnline ? 'var(--c-danger)' : tc;
+  }
+  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0);  document.getElementById('live-count').textContent = onlineCount;
 }
   
 /* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
