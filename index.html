@@ -1961,8 +1961,8 @@ const trEl = document.getElementById('traffic-card-status');
     trEl.textContent = !d.trafficOnline ? 'OFFLINE' : d.trafficState ?? 'LIVE';
     trEl.style.color = !d.trafficOnline ? 'var(--c-danger)' : tc;
   }
-  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0);  document.getElementById('live-count').textContent = onlineCount;
-}
+const gasOnline = rfidOnline; // gas and rfid share same ESP32
+  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (gasOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0);}
   
 /* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
 function renderSystems() {
