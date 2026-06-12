@@ -1720,31 +1720,51 @@ function renderDetail(sys) {
         ${card('Signal', d.trafficState ?? '—', '', '', tc)}
         ${card('Time Left', d.trafficTime ?? '—', 's', 'of ' + (d.trafficTotal ?? '—') + 's total', '#ffaa00', pct, '#ffaa00')}
       </div>
-      <div class="section-label">Compass</div>
+      <div class="section-label">Live Direction</div>
       <div style="display:flex;justify-content:center;padding:20px 0;">
-        <div style="position:relative;width:160px;height:160px;">
-          <svg viewBox="0 0 160 160" width="160" height="160">
-            <circle cx="80" cy="80" r="78" fill="none" stroke="rgba(0,200,255,0.15)" stroke-width="1"/>
-            <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(0,200,255,0.08)" stroke-width="1"/>
-            <text x="80" y="16" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">N</text>
-            <text x="80" y="152" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">S</text>
-            <text x="148" y="84" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">E</text>
-            <text x="12" y="84" text-anchor="middle" fill="rgba(100,160,220,0.6)" font-size="12" font-family="Orbitron,monospace">W</text>
-            ${d.trafficDir === 'N + S' ? `
-              <line x1="80" y1="25" x2="80" y2="135" stroke="${tc}" stroke-width="3" stroke-linecap="round"/>
-              <polygon points="80,18 74,30 86,30" fill="${tc}"/>
-              <polygon points="80,142 74,130 86,130" fill="${tc}"/>
-            ` : d.trafficDir === 'E + W' ? `
-              <line x1="25" y1="80" x2="135" y2="80" stroke="${tc}" stroke-width="3" stroke-linecap="round"/>
-              <polygon points="142,80 130,74 130,86" fill="${tc}"/>
-              <polygon points="18,80 30,74 30,86" fill="${tc}"/>
-            ` : `
-              <circle cx="80" cy="80" r="8" fill="#ff3a3a"/>
-            `}
-            <circle cx="80" cy="80" r="5" fill="rgba(0,200,255,0.4)"/>
-          </svg>
-        </div>
-      </div>`;
+        <svg id="traffic-compass" viewBox="0 0 200 200" width="200" height="200">
+          <!-- Outer rings -->
+          <circle cx="100" cy="100" r="95" fill="none" stroke="rgba(0,200,255,0.12)" stroke-width="1"/>
+          <circle cx="100" cy="100" r="82" fill="none" stroke="rgba(0,200,255,0.08)" stroke-width="1"/>
+          <circle cx="100" cy="100" r="68" fill="none" stroke="rgba(0,200,255,0.06)" stroke-width="1"/>
+          <!-- Tick marks -->
+          ${Array.from({length:24},(_,i)=>{
+            const a=i*15*Math.PI/180;
+            const r1=i%6===0?88:i%3===0?85:82;
+            const r2=95;
+            const x1=100+Math.sin(a)*r1, y1=100-Math.cos(a)*r1;
+            const x2=100+Math.sin(a)*r2, y2=100-Math.cos(a)*r2;
+            return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(0,200,255,0.2)" stroke-width="${i%6===0?1.5:0.8}"/>`;
+          }).join('')}
+          <!-- Cardinal labels -->
+          <text x="100" y="10" text-anchor="middle" fill="rgba(180,220,255,0.9)" font-size="11" font-family="Orbitron,monospace" font-weight="700">N</text>
+          <text x="100" y="196" text-anchor="middle" fill="rgba(180,220,255,0.9)" font-size="11" font-family="Orbitron,monospace" font-weight="700">S</text>
+          <text x="194" y="104" text-anchor="middle" fill="rgba(180,220,255,0.9)" font-size="11" font-family="Orbitron,monospace" font-weight="700">E</text>
+          <text x="6" y="104" text-anchor="middle" fill="rgba(180,220,255,0.9)" font-size="11" font-family="Orbitron,monospace" font-weight="700">W</text>
+          <!-- Diagonal labels -->
+          <text x="162" y="42" text-anchor="middle" fill="rgba(100,160,220,0.4)" font-size="7" font-family="Orbitron,monospace">ne</text>
+          <text x="38" y="42" text-anchor="middle" fill="rgba(100,160,220,0.4)" font-size="7" font-family="Orbitron,monospace">nw</text>
+          <text x="162" y="164" text-anchor="middle" fill="rgba(100,160,220,0.4)" font-size="7" font-family="Orbitron,monospace">se</text>
+          <text x="38" y="164" text-anchor="middle" fill="rgba(100,160,220,0.4)" font-size="7" font-family="Orbitron,monospace">sw</text>
+          <!-- N+S arrows (animated) -->
+          <g id="compass-ns" style="opacity:${d.trafficDir==='N + S'?1:0.15};transition:opacity 1s">
+            <polygon points="100,22 94,52 100,44 106,52" fill="${d.trafficDir==='N + S'?tc:'rgba(0,200,255,0.3)'}"/>
+            <polygon points="100,178 94,148 100,156 106,148" fill="${d.trafficDir==='N + S'?tc:'rgba(0,200,255,0.3)'}"/>
+            <polygon points="100,44 94,52 100,22 106,52" fill="${d.trafficDir==='N + S'?'rgba(0,0,0,0.3)':'rgba(0,200,255,0.15)'}"/>
+          </g>
+          <!-- E+W arrows (animated) -->
+          <g id="compass-ew" style="opacity:${d.trafficDir==='E + W'?1:0.15};transition:opacity 1s">
+            <polygon points="178,100 148,94 156,100 148,106" fill="${d.trafficDir==='E + W'?tc:'rgba(0,200,255,0.3)'}"/>
+            <polygon points="22,100 52,94 44,100 52,106" fill="${d.trafficDir==='E + W'?tc:'rgba(0,200,255,0.3)'}"/>
+            <polygon points="156,100 148,94 178,100 148,106" fill="${d.trafficDir==='E + W'?'rgba(0,0,0,0.3)':'rgba(0,200,255,0.15)'}"/>
+          </g>
+          <!-- Center dot -->
+          <circle cx="100" cy="100" r="6" fill="${tc}" opacity="0.9"/>
+          <circle cx="100" cy="100" r="3" fill="rgba(255,255,255,0.8)"/>
+          <!-- Glow ring -->
+          <circle cx="100" cy="100" r="95" fill="none" stroke="${tc}" stroke-width="0.5" opacity="0.3"/>
+        </svg>
+     </div>`;
   }
   
 }
@@ -1962,8 +1982,9 @@ const trEl = document.getElementById('traffic-card-status');
     trEl.style.color = !d.trafficOnline ? 'var(--c-danger)' : tc;
   }
 const gasOnline = rfidOnline; // gas and rfid share same ESP32
-  const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (gasOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0);}
-  
+const onlineCount = (weatherOnline ? 1 : 0) + (rfidOnline ? 1 : 0) + (gasOnline ? 1 : 0) + (d.parkingOnline ? 1 : 0) + (d.trashOnline ? 1 : 0) + (d.trafficOnline ? 1 : 0);
+  document.getElementById('live-count').textContent = onlineCount;
+}  
 /* ── SYSTEMS VIEW ───────────────────────────────────────────────── */
 function renderSystems() {
   if (!liveData) return;
