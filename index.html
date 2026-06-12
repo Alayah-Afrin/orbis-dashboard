@@ -2097,12 +2097,12 @@ function updateSolarPage() {
           const rad = (angle / 180) * Math.PI;
           const len = 90;
           const cx = 140, cy = 140;
-          const ex = cx - Math.cos(Math.PI - rad) * len;
-          const ey = cy - Math.sin(Math.PI - rad) * len;
-          const wx1 = cx - Math.cos(Math.PI - rad + 0.15) * 18;
-          const wy1 = cy - Math.sin(Math.PI - rad + 0.15) * 18;
-          const wx2 = cx - Math.cos(Math.PI - rad - 0.15) * 18;
-          const wy2 = cy - Math.sin(Math.PI - rad - 0.15) * 18;
+          const ex = cx - Math.cos(rad) * len;
+          const ey = cy - Math.sin(rad) * len;
+          const wx1 = cx - Math.cos(rad + 0.15) * 18;
+          const wy1 = cy - Math.sin(rad + 0.15) * 18;
+          const wx2 = cx - Math.cos(rad - 0.15) * 18;
+          const wy2 = cy - Math.sin(rad - 0.15) * 18;
           return `
             <line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${mc}" stroke-width="3" stroke-linecap="round"/>
             <polygon points="${ex},${ey} ${wx1},${wy1} ${wx2},${wy2}" fill="${mc}" opacity="0.9"/>
@@ -2113,7 +2113,7 @@ function updateSolarPage() {
           `;
         })()}
         <!-- Glow under needle tip -->
-        <circle cx="${140 - Math.cos(Math.PI - (angle/180)*Math.PI) * 90}" cy="${140 - Math.sin(Math.PI - (angle/180)*Math.PI) * 90}" r="8" fill="${mc}" opacity="0.1"/>
+        <circle cx="${140 - Math.cos((angle/180)*Math.PI) * 90}" cy="${140 - Math.sin((angle/180)*Math.PI) * 90}" r="8" fill="${mc}" opacity="0.1"/>
       </svg>
     </div>
 
