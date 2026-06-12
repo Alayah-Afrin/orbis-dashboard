@@ -2094,14 +2094,14 @@ function updateSolarPage() {
         <text x="220" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">WEST</text>
         <!-- Panel needle — rotates based on angle -->
         ${(() => {
-          const rad = (angle / 180) * Math.PI;
+          const rad = (180 - (angle - 20) * (180 / 140)) * Math.PI / 180;
           const len = 90;
           const cx = 140, cy = 140;
-          const ex = cx - Math.cos(rad) * len;
+          const ex = cx + Math.cos(rad) * len;
           const ey = cy - Math.sin(rad) * len;
-          const wx1 = cx - Math.cos(rad + 0.15) * 18;
+          const wx1 = cx + Math.cos(rad + 0.15) * 18;
           const wy1 = cy - Math.sin(rad + 0.15) * 18;
-          const wx2 = cx - Math.cos(rad - 0.15) * 18;
+          const wx2 = cx + Math.cos(rad - 0.15) * 18;
           const wy2 = cy - Math.sin(rad - 0.15) * 18;
           return `
             <line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${mc}" stroke-width="3" stroke-linecap="round"/>
@@ -2113,7 +2113,7 @@ function updateSolarPage() {
           `;
         })()}
         <!-- Glow under needle tip -->
-        <circle cx="${140 - Math.cos((angle/180)*Math.PI) * 90}" cy="${140 - Math.sin((angle/180)*Math.PI) * 90}" r="8" fill="${mc}" opacity="0.1"/>
+        <circle cx="${140 + Math.cos((180 - (angle-20)*(180/140))*Math.PI/180) * 90}" cy="${140 - Math.sin((180 - (angle-20)*(180/140))*Math.PI/180) * 90}" r="8" fill="${mc}" opacity="0.1"/>
       </svg>
     </div>
 
