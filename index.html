@@ -2069,7 +2069,7 @@ function updateSolarPage() {
         <div style="font-family:var(--font-main);font-weight:900;font-size:clamp(2.8rem,11vw,4.5rem);color:${mc};line-height:1;">${angle.toFixed(1)}</div>
         <div style="font-size:1.4rem;color:var(--c-muted);margin-bottom:8px;">°</div>
       </div>
-      <div style="font-size:.6rem;letter-spacing:.2em;color:var(--c-muted);margin-top:4px;">${angle < 90 ? 'TILTED WEST' : angle > 90 ? 'TILTED EAST' : 'CENTERED'}</div>
+      <div style="font-size:.6rem;letter-spacing:.2em;color:var(--c-muted);margin-top:4px;">${angle < 90 ? 'TILTED EAST' : angle > 90 ? 'TILTED WEST' : 'CENTERED'}</div>
       <div style="display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid ${mc};border-radius:2px;font-size:.65rem;color:${mc};letter-spacing:.1em;font-family:var(--font-main);">${d.solarMode ?? 'AUTO'}</div>
     </div>
 
@@ -2090,8 +2090,8 @@ function updateSolarPage() {
         <!-- Center vertical guide -->
         <line x1="140" y1="30" x2="140" y2="140" stroke="rgba(0,200,255,0.08)" stroke-width="1" stroke-dasharray="3,3"/>
         <!-- Sun position indicators -->
-        <text x="40" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">WEST</text>
-        <text x="220" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">EAST</text>
+        <text x="40" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">EAST</text>
+        <text x="220" y="120" fill="rgba(100,160,220,0.3)" font-size="8" font-family="Orbitron,monospace">WEST</text>
         <!-- Panel needle — rotates based on angle -->
         ${(() => {
           const rad = (angle / 180) * Math.PI;
